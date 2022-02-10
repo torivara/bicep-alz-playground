@@ -15,17 +15,20 @@ Triggers on Push:
   - alz-bicep - The source modules and resources from MS.
   - platform - The parameter files deciding platform structure.
     - level-1 - The foundational management group structure, custom policy definitions and custom RBAC definitions
-      - management-groups
-      - policy-definitions
-      - rbac-definitions
+      - managementGroups
+      - policyDefinitions
+      - roleAssignments
     - level-2 - Logging/Security, Hub networking, rbac role assignments
-      - management
-      - networking
-      - rbac-assignments
+      - logging
+      - hubNetworking
+      - roleAssignments
     - level-3 - Subscription placement, policy assignments and spoke networking
-      - subscriptions
-      - policy-assignments
-      - spokes
+      - subscriptionPlacement
+      - policyAssignments
+      - spokeNetworking
+    - level-4 - Resource deployments
+      - hub
+      - corpSpoke1
 
 ## Prerequisites
 
