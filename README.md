@@ -10,7 +10,14 @@ Triggers on Push:
 
 ## Folder structure
 
+- Repository root
+  - .github - Workflows and all things required for them.
+  - alz-bicep - The source modules and resources from MS.
+  - platform - The parameter files deciding platform structure.
+
 ## Prerequisites
+
+Please see the [deployment identity guide](https://github.com/Azure/ALZ-Bicep/wiki/DeploymentFlow#deployment-identity) in Bicep-ALZ for requirements in that department.
 
 ## Submodules
 
