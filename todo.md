@@ -1,6 +1,9 @@
 # Planned tasks
 
+- [ ] Create linter workflow
+- [ ] Create validate workflow
 - [ ] Create deploy workflow
-  - [ ] Validate deployment with Pull Request What-if and PR comment
-  - [ ] Invite to development in dev-branches, not in main branch
+- [ ] Test deploy workflow
 - [ ] Test deployment
+- [ ] Create SPN with necessary permissions in management group
+- [ ] Create dedicated SPNs for each operation, considering least privilege principle
