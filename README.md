@@ -14,10 +14,22 @@ Triggers on Push:
   - .github - Workflows and all things required for them.
   - alz-bicep - The source modules and resources from MS.
   - platform - The parameter files deciding platform structure.
+    - level-1 - The foundational management group structure, custom policy definitions and custom RBAC definitions
+      - mgmt-group
+      - policy-definitions
+      - rbac-definitions
+    - level-2 - Logging/Security, Hub networking, rbac role assignments
+      - management
+      - networking
+      - rbac-assignments
+    - level-3 - Subscription placement, policy assignments and spoke networking
+      - subscriptions
+      - policy-assignments
+      - spokes
 
 ## Prerequisites
 
-Please see the [deployment identity guide](https://github.com/Azure/ALZ-Bicep/wiki/DeploymentFlow#deployment-identity) in Bicep-ALZ for requirements in that department.
+Please see the [deployment flow prerequisites](https://github.com/Azure/ALZ-Bicep/wiki/DeploymentFlow#prerequisites) in Bicep-ALZ for requirements in that department.
 
 ## Submodules
 
