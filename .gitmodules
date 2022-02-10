@@ -1,0 +1,3 @@
+[submodule "alz-source"]
+	path = alz-source
+	url = https://github.com/Azure/ALZ-bicep
