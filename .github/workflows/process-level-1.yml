@@ -42,21 +42,14 @@ jobs:
         id: diff_action
         with:
           PATTERNS: |
-            managementGroups.bicep
-            customRoleDefinitions.bicep
-            custom-policy-definitions.bicep
-            policyAssignmentManagementGroup.bicep
-            subscriptionPlacement.bicep
             platform/level-1/**.json
       
       - name: BicepDemo - Validate Bicep Files
         shell: pwsh
         run: |
-          foreach ($file in ${{ env.GIT_DIFF }}) {
-            if ($file -like "*.bicep"){
-              bicep build $file
-            }
-          }
+          bicep build alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep
           
       - name: Az CLI What-If Management Groups for PR
         id: create_mgs
