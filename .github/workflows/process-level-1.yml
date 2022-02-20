@@ -34,7 +34,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          credentials: ${{ secrets.AZURE_CREDENTIALS_MG_CONTRIBUTOR }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: true
       
       - uses: technote-space/get-diff-action@v6
