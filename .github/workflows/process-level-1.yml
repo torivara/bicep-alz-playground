@@ -58,7 +58,7 @@ jobs:
         shell: pwsh
         run: |
           az deployment tenant what-if --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
-            --paramerers @platform/level-1/managementGroups/managementGroups.parameters.json
+            --paramerers @platform/level-1/managementGroups/managementGroups.parameters.json `
             --location ${{ env.Location }} | Tee-Object -Variable mgOutput
           $mgOutput | Out-File -FilePath /tmp/mgOutput.md -Encoding UTF8 -Force
       
