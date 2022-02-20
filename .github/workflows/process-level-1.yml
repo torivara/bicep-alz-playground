@@ -41,6 +41,7 @@ jobs:
   
   validate_mg:
     name: 'Management Group What-If'
+    needs: validate_bicep
     runs-on: ubuntu-latest
 
     steps:
@@ -77,6 +78,7 @@ jobs:
 
   confirm_mg:
     name: 'Confirm Management Group deployment'
+    needs: validate_mg
     runs-on: ubuntu-latest
     environment: CONFIRM
     steps:
@@ -109,8 +111,46 @@ jobs:
             --parameters @platform/level-1/managementGroups/managementGroups.parameters.json `
             --location ${{ env.Location }}
 
-  validate_crd_rbac:
-    name: "Custom Roles Definitions and RBAC What-If"
+  validate_policy:
+    name: "Custom Policy Definitions What-If"
+    needs: deploy_mg
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+          allow-no-subscriptions: true
+
+      - name: Az CLI What-If Custom Policy Definitions
+        id: create_policy_defs_whatif
+        if: ${{ github.event_name == 'pull_request'}}
+        shell: pwsh
+        run: |
+            az deployment mg what-if --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
+              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.example.json `
+              --location ${{ env.Location }} `
+              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
+            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
+      
+      - name: Post policy output to PR
+        shell: pwsh
+        if: ${{ github.event_name == 'pull_request' && steps.create_policy_defs_whatif.outcome == 'success' }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policyOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  validate_rbac:
+    name: "Custom Role Definitions What-If"
     needs: deploy_mg
     runs-on: ubuntu-latest
 
@@ -139,44 +179,55 @@ jobs:
               --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable rbacOutput
             $rbacOutput | Out-File -FilePath /tmp/rbacOutput.md -Encoding UTF8 -Force
 
-      - name: Az CLI What-If Custom Policy Definitions
-        id: create_policy_defs_whatif
-        if: ${{ github.event_name == 'pull_request'}}
-        shell: pwsh
-        run: |
-            az deployment mg what-if --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
-              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.example.json `
-              --location ${{ env.Location }} `
-              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
-            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
-
-      - name: BicepDemo - Post RBAC output
+      - name: Post RBAC output to PR
         shell: pwsh
         if: ${{ github.event_name == 'pull_request' && steps.create_rbac_roles_whatif.outcome == 'success' }}
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/rbacOutput.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: BicepDemo - Post policy output
-        shell: pwsh
-        if: ${{ github.event_name == 'pull_request' && steps.create_policy_defs_whatif.outcome == 'success' }}
-        run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policyOutput.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  confirm_crd_rbac:
+  confirm_policy_rbac:
     name: 'Confirm Custom Role Definitions and RBAC Deployment'
-    needs: validate_crd_rbac
+    needs: ['validate_rbac', 'validate_policy']
     runs-on: ubuntu-latest
     environment: CONFIRM
     steps:
       - run: echo "Confirm deployment"
   
-  deploy_crd_rbac:
-    name: "Custom Roles Definitions and RBAC What-If"
-    needs: confirm_crd_rbac
+  deploy_policy:
+    name: "Deploy Custom Policy Definitions"
+    needs: confirm_policy_rbac
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+          allow-no-subscriptions: true
+
+      - name: Az CLI Create Custom Policy Definitions
+        id: create_policy_defs_whatif
+        if: ${{ github.event_name == 'pull_request'}}
+        shell: pwsh
+        run: |
+            az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
+              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.example.json `
+              --location ${{ env.Location }} `
+              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
+            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
+  
+  deploy_rbac:
+    name: "Deploy Custom Role Definitions"
+    needs: confirm_policy_rbac
     runs-on: ubuntu-latest
 
     steps:
@@ -204,16 +255,6 @@ jobs:
               --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable rbacOutput
             $rbacOutput | Out-File -FilePath /tmp/rbacOutput.md -Encoding UTF8 -Force
 
-      - name: Az CLI Create Custom Policy Definitions
-        id: create_policy_defs_whatif
-        if: ${{ github.event_name == 'pull_request'}}
-        shell: pwsh
-        run: |
-            az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
-              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.example.json `
-              --location ${{ env.Location }} `
-              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
-            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
       # - uses: technote-space/get-diff-action@v6
       #   id: diff_action
       #   with:
