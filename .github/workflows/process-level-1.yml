@@ -261,7 +261,6 @@ jobs:
 
       - name: Az CLI Create Custom Policy Definitions
         id: create_policy_defs_whatif
-        if: ${{ github.event_name == 'pull_request' }}
         shell: pwsh
         run: |
             az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
@@ -291,7 +290,6 @@ jobs:
       
       - name: Az CLI Create Custom Role Definitions
         id: create_rbac_roles_whatif
-        if: ${{ github.event_name == 'pull_request' }}
         shell: pwsh
         run: |
             az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep `
