@@ -1,17 +1,15 @@
 name: Process level-1
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "platform/level-1/**.json"
   pull_request:
     branches:
       - main
     paths:
-      - "alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep"
-      - "alz-source/infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep"
-      - "alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep"
-      - "alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep"
-      - "alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep"
-      - "alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep"
-      - "platform/level-1/**.bicep"
       - "platform/level-1/**.json"
   workflow_dispatch: {}
 
@@ -91,6 +89,7 @@ jobs:
   deploy_mg:
     name: 'Deploy Management Groups'
     needs: confirm_mg
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -115,9 +114,44 @@ jobs:
             --parameters @platform/level-1/managementGroups/managementGroups.parameters.json `
             --location ${{ env.Location }}
 
+  check_mg:
+    name: 'Check management group exists'
+    needs: deploy_mg
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    outputs:
+      MG_CREATED: ${{ steps.check_exists.output.MG_CREATED }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+      - name: Verify top level management group exists in tenant
+        id: check_exists
+        shell: pwsh
+        run: |
+          $mg = az account management-group list --query "[?name=='${{ env.ManagementGroupPrefix }}']" | ConvertFrom-Json
+          if ($mg) {
+            echo "MG_CREATED=true" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+            echo '::set-output name=MG_CREATED::true'
+          } else {
+            echo "MG_CREATED=false" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+            echo '::set-output name=MG_CREATED::false'
+          }
+
   validate_policy:
     name: "Custom Policy Definitions What-If"
     needs: deploy_mg
+    if: ${{jobs.check_mg.outputs.MG_CREATED == 'true'}}
     runs-on: ubuntu-latest
 
     steps:
@@ -160,6 +194,7 @@ jobs:
   validate_rbac:
     name: "Custom Role Definitions What-If"
     needs: deploy_mg
+    if: ${{jobs.check_mg.outputs.MG_CREATED == 'true'}}
     runs-on: ubuntu-latest
 
     steps:
@@ -202,6 +237,7 @@ jobs:
   confirm_policy_rbac:
     name: 'Confirm Custom Role Definitions and RBAC Deployment'
     needs: ['validate_rbac', 'validate_policy']
+    if: ${{jobs.check_mg.outputs.MG_CREATED == 'true'}}
     runs-on: ubuntu-latest
     environment: CONFIRM
     steps:
@@ -210,6 +246,7 @@ jobs:
   deploy_policy:
     name: "Deploy Custom Policy Definitions"
     needs: confirm_policy_rbac
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' && jobs.check_mg.outputs.MG_CREATED == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -228,7 +265,7 @@ jobs:
 
       - name: Az CLI Create Custom Policy Definitions
         id: create_policy_defs_whatif
-        if: ${{ github.event_name == 'pull_request'}}
+        if: ${{ github.event_name == 'pull_request' }}
         shell: pwsh
         run: |
             az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
@@ -239,6 +276,7 @@ jobs:
   deploy_rbac:
     name: "Deploy Custom Role Definitions"
     needs: confirm_policy_rbac
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' && jobs.check_mg.outputs.MG_CREATED == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
