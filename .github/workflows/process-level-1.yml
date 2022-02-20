@@ -54,7 +54,7 @@ jobs:
           
       - name: Az CLI What-If Management Groups for PR
         id: create_mgs
-        if: ${{ github.event_name == 'pull_request' && steps.diff_action.outputs.diff != '' }}
+        if: ${{ github.event_name == 'pull_request' }}
         shell: pwsh
         run: |
           az deployment tenant what-if --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
@@ -64,7 +64,7 @@ jobs:
       
       - name: Az CLI What-If Custom Role Definitions for PR
         id: create_rbac_roles
-        if: ${{ github.event_name == 'pull_request' && steps.diff_action.outputs.diff != '' }}
+        if: ${{ github.event_name == 'pull_request' }}
         shell: pwsh
         run: |
             az deployment mg what-if --template-file  alz-source/infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep `
@@ -75,7 +75,7 @@ jobs:
 
       - name: Az CLI What-If Custom Policy Definitions for PR
         id: create_policy_defs
-        if: ${{ github.event_name == 'pull_request' && steps.diff_action.outputs.diff != '' }}
+        if: ${{ github.event_name == 'pull_request'}}
         shell: pwsh
         run: |
             az deployment mg what-if --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
@@ -86,7 +86,7 @@ jobs:
         
       - name: BicepDemo - Post MG output
         shell: pwsh
-        if: github.event_name == 'pull_request' && steps.create_mgs.outcome == 'success'
+        if: ${{ github.event_name == 'pull_request' && steps.create_mgs.outcome == 'success' }}
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/mgOutput.md
         env:
@@ -94,7 +94,7 @@ jobs:
       
       - name: BicepDemo - Post RBAC output
         shell: pwsh
-        if: github.event_name == 'pull_request' && steps.create_rbac_roles.outcome == 'success'
+        if: ${{ github.event_name == 'pull_request' && steps.create_rbac_roles.outcome == 'success' }}
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/rbacOutput.md
         env:
@@ -102,7 +102,7 @@ jobs:
       
       - name: BicepDemo - Post policy output
         shell: pwsh
-        if: github.event_name == 'pull_request' && steps.create_policy_defs.outcome == 'success'
+        if: ${{ github.event_name == 'pull_request' && steps.create_policy_defs.outcome == 'success' }}
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policyOutput.md
         env:
