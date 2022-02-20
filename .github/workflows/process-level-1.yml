@@ -55,7 +55,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+          enable-AzPSSession: false
           allow-no-subscriptions: true
       
       - name: Az CLI What-If Management Groups
@@ -99,7 +99,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+          enable-AzPSSession: false
           allow-no-subscriptions: true
       
       - name: Az CLI Create Management Groups
@@ -127,7 +127,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+          enable-AzPSSession: false
           allow-no-subscriptions: true
 
       - name: Az CLI What-If Custom Policy Definitions
@@ -165,7 +165,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+          enable-AzPSSession: false
           allow-no-subscriptions: true
       
       - name: Az CLI What-If Custom Role Definitions
@@ -211,7 +211,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+          enable-AzPSSession: false
           allow-no-subscriptions: true
 
       - name: Az CLI Create Custom Policy Definitions
@@ -241,7 +241,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+          enable-AzPSSession: false
           allow-no-subscriptions: true
       
       - name: Az CLI Create Custom Role Definitions
