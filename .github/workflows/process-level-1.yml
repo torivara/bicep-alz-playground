@@ -15,6 +15,11 @@ on:
       - "platform/level-1/**.json"
   workflow_dispatch: {}
 
+env:
+  location: 'westeurope'
+  ManagementGroupPrefix: 'alz'
+  TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
+
 jobs:
   validate_bicep:
     name: validate
