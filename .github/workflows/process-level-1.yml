@@ -81,6 +81,7 @@ jobs:
   confirm_mg:
     name: 'Confirm Management Group deployment'
     needs: validate_mg
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     environment: CONFIRM
     steps:
@@ -105,7 +106,7 @@ jobs:
           enable-AzPSSession: false
           allow-no-subscriptions: true
       
-      - name: Check if management group hierarchy exists
+      - name: Check if top level management group exists
         id: check_mg
         shell: pwsh
         run: |
@@ -232,7 +233,7 @@ jobs:
 
   confirm_policy_rbac:
     name: 'Confirm Custom Role Definitions and RBAC Deployment'
-    needs: ['validate_rbac', 'validate_policy']
+    needs: ['validate_rbac', 'validate_policy', 'deploy_mg']
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     environment: CONFIRM
