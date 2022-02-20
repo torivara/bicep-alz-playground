@@ -16,7 +16,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  location: 'westeurope'
+  Location: 'westeurope'
   ManagementGroupPrefix: 'alz'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
 
