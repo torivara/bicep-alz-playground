@@ -92,6 +92,8 @@ jobs:
     needs: validate_mg
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
+    outputs:
+      MG_EXISTS: ${{ steps.check_mg.outputs.MG_EXISTS }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -120,7 +122,7 @@ jobs:
   validate_policy:
     name: "Custom Policy Definitions What-If"
     needs: check_mg
-    if: ${{ github.event_name == 'pull_request' && needs.check_mg.steps.check_mg.outputs.MG_EXISTS == 'true' }}
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -163,7 +165,7 @@ jobs:
   validate_rbac:
     name: "Custom Role Definitions What-If"
     needs: check_mg
-    if: ${{ github.event_name == 'pull_request' && needs.check_mg.steps.check_mg.outputs.MG_EXISTS == 'true' }}
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
