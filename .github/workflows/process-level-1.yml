@@ -83,7 +83,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && steps.diff_action.outputs.diff != '' }}
         shell: pwsh
         run: |
-            az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
+            az deployment mg what-if --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
               --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.example.json `
               --location ${{ env.Location }} `
               --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
