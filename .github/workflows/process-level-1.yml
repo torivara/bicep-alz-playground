@@ -86,10 +86,10 @@ jobs:
     steps:
       - run: echo "Confirm deployment"
 
-  deploy_mg:
-    name: 'Deploy Management Groups'
-    needs: confirm_mg
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
+  check_mg:
+    name: 'Check if management group exist'
+    needs: validate_mg
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -105,19 +105,21 @@ jobs:
           enable-AzPSSession: false
           allow-no-subscriptions: true
       
-      - name: Az CLI Create Management Groups
-        id: create_mgs_whatif
-        if: ${{ github.event_name == 'pull_request' }}
+      - name: Check if management group hierarchy exists
+        id: check_mg
         shell: pwsh
         run: |
-          az deployment tenant create --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
-            --parameters @platform/level-1/managementGroups/managementGroups.parameters.json `
-            --location ${{ env.Location }}
+          $check = az account management-group list --query "[?name=='${{ env.ManagementGroupPrefix }}']" | ConvertFrom-Json
+          if ($check){
+            Write-Output '::set-output name=MG_CREATED::true'
+          } else {
+            Write-Output '::set-output name=MG_CREATED::false'
+          }
 
   validate_policy:
     name: "Custom Policy Definitions What-If"
-    needs: deploy_mg
-    if: ${{ github.event_name == 'pull_request' }}
+    needs: check_mg
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_CREATED == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -159,8 +161,8 @@ jobs:
   
   validate_rbac:
     name: "Custom Role Definitions What-If"
-    needs: deploy_mg
-    if: ${{ github.event_name == 'pull_request' }}
+    needs: check_mg
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_CREATED == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -199,6 +201,34 @@ jobs:
           gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/rbacOutput.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  deploy_mg:
+    name: 'Deploy Management Groups'
+    needs: confirm_mg
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+      
+      - name: Az CLI Create Management Groups
+        id: create_mgs_whatif
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: pwsh
+        run: |
+          az deployment tenant create --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
+            --parameters @platform/level-1/managementGroups/managementGroups.parameters.json `
+            --location ${{ env.Location }}
 
   confirm_policy_rbac:
     name: 'Confirm Custom Role Definitions and RBAC Deployment'
