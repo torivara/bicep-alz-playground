@@ -89,6 +89,7 @@ jobs:
 
   check_mg:
     name: 'Check if management group exist'
+    needs: validate_mg
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
@@ -223,7 +224,6 @@ jobs:
       
       - name: Az CLI Create Management Groups
         id: create_mgs_whatif
-        if: ${{ github.event_name == 'pull_request' }}
         shell: pwsh
         run: |
           az deployment tenant create --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
