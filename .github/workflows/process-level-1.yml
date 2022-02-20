@@ -66,6 +66,10 @@ jobs:
           az deployment tenant what-if --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
             --parameters @platform/level-1/managementGroups/managementGroups.parameters.json `
             --location ${{ env.Location }} | Tee-Object -Variable mgOutput
+          if ($mgOutput.length -gt 65536) {
+              $mgOutput = $mgOutput.Substring(0,65500)
+              $mgOutput += "`nTruncated"
+            }
           $mgOutput | Out-File -FilePath /tmp/mgOutput.md -Encoding UTF8 -Force
         
       - name: Post MG output to PR
@@ -139,6 +143,10 @@ jobs:
               --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.json `
               --location ${{ env.Location }} `
               --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
+            if ($policyOutput.length -gt 65536) {
+              $policyOutput = $policyOutput.Substring(0,65500)
+              $policyOutput += "`nTruncated"
+            }
             $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
       
       - name: Post policy output to PR
@@ -177,6 +185,10 @@ jobs:
               --parameters @platform/level-1/customRoleDefinitions/customRoleDefinitions.parameters.json `
               --location ${{ env.Location }} `
               --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable rbacOutput
+            if ($rbacOutput.length -gt 65536) {
+              $rbacOutput = $rbacOutput.Substring(0,65500)
+              $rbacOutput += "`nTruncated"
+            }
             $rbacOutput | Out-File -FilePath /tmp/rbacOutput.md -Encoding UTF8 -Force
 
       - name: Post RBAC output to PR
@@ -222,8 +234,7 @@ jobs:
             az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
               --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.json `
               --location ${{ env.Location }} `
-              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
-            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
+              --management-group-id ${{ env.ManagementGroupPrefix }}
   
   deploy_rbac:
     name: "Deploy Custom Role Definitions"
@@ -252,8 +263,7 @@ jobs:
             az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep `
               --parameters @platform/level-1/customRoleDefinitions/customRoleDefinitions.parameters.json `
               --location ${{ env.Location }} `
-              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable rbacOutput
-            $rbacOutput | Out-File -FilePath /tmp/rbacOutput.md -Encoding UTF8 -Force
+              --management-group-id ${{ env.ManagementGroupPrefix }}
 
       # - uses: technote-space/get-diff-action@v6
       #   id: diff_action
