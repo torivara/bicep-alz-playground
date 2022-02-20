@@ -68,7 +68,7 @@ jobs:
             --location ${{ env.Location }} | Tee-Object -Variable mgOutput
           $mgOutput | Out-File -FilePath /tmp/mgOutput.md -Encoding UTF8 -Force
         
-      - name: BicepDemo - Post MG output
+      - name: Post MG output to PR
         shell: pwsh
         if: ${{ github.event_name == 'pull_request' && steps.create_mgs_whatif.outcome == 'success' }}
         run: |
