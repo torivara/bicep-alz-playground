@@ -68,7 +68,7 @@ jobs:
             --location ${{ env.Location }} | Tee-Object -Variable mgOutput
           $mgOutput | Out-File -FilePath /tmp/mgOutput.md -Encoding UTF8 -Force
         
-      - name: BicepDemo - Post MG output
+      - name: Post MG output to PR
         shell: pwsh
         if: ${{ github.event_name == 'pull_request' && steps.create_mgs_whatif.outcome == 'success' }}
         run: |
@@ -220,7 +220,7 @@ jobs:
         shell: pwsh
         run: |
             az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
-              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.example.json `
+              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.json `
               --location ${{ env.Location }} `
               --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
             $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
