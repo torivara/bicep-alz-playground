@@ -136,7 +136,7 @@ jobs:
         shell: pwsh
         run: |
             az deployment mg what-if --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
-              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.example.json `
+              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.json `
               --location ${{ env.Location }} `
               --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
             $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
