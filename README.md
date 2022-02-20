@@ -34,6 +34,38 @@ Triggers on Push:
 
 Please see the [deployment flow prerequisites](https://github.com/Azure/ALZ-Bicep/wiki/DeploymentFlow#prerequisites) in Bicep-ALZ for requirements in that department.
 
-## Submodules
+### Add submodule
 
-Added the Bicep ALZ as a submodule in this repo to always have the latest modules available.
+Added the Bicep ALZ as a submodule in this repo to have the possibility of fetching new repo versions. Submodule added at a specific commit, and must be manually pulled for new versions.
+
+```bash
+cd `your repo root`
+git add submodule 'https://github.com/Azure/ALZ-Bicep.git' alz-source
+```
+
+### Create SPN
+
+TODO: Create least privilege SPN guide and test
+
+```pwsh
+az ad sp create-for-rbac --name bicep-spn-owner `
+  --role 'Owner' `
+  --scope '/'
+```
+
+>Be advised that the json output from this command will not directly translate to the AZURE_CREDENTIALS json.
+>The Azure Login action apparently needs specific names for the values, and default is not correct.
+
+## Add github secret
+
+Secret name: AZURE_CREDENTIALS
+
+```json
+{
+  "clientId": "`app registration id`",
+  "displayName": "`app registration display name`",
+  "name": "`app registration client name`",
+  "clientSecret": "`your client secret`",
+  "tenantId": "`your tenant id`"
+}
+```
