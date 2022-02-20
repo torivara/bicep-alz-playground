@@ -1,0 +1,48 @@
+name: Process level-2
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "alz-source/infra-as-code/bicep/modules/logging/logging.bicep"
+      - "alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep"
+      - "alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentSubscription.bicep"
+      - "alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentSubscriptionMany.bicep"
+      - "platform/level-2/**.bicep"
+      - "platform/level-2/**.json"
+  workflow_dispatch: {}
+
+env:
+  ResourceGroupName: "rsg-github-pr-${{ github.event.number }}"
+
+jobs:
+  validate_bicep:
+    name: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.ALZ_AZURE_SECRET_UNIT_TESTS }}
+          enable-AzPSSession: true
+      
+      - name: Check for logging Changes
+        id: git_logging_diff
+        shell: bash
+        run: |
+          git_logging=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/logging/logging.bicep)
+          echo "gitLoggingOUTPUT=$git_logging"  >> $GITHUB_ENV
+
+      - name: Check for hubNetworking Changes
+        id: git_hubnetworking_diff
+        shell: bash
+        run: |
+          git_hub=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep)
+          echo "gitHubOUTPUT=$git_hub" >> $GITHUB_ENV

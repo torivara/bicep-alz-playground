@@ -1,0 +1,38 @@
+name: Process level-3
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep"
+      - "platform/level-3/**.bicep"
+      - "platform/level-3/**.json"
+  workflow_dispatch: {}
+
+env:
+  ResourceGroupName: "rsg-github-pr-${{ github.event.number }}"
+
+jobs:
+  validate_bicep:
+    name: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.ALZ_AZURE_SECRET_UNIT_TESTS }}
+          enable-AzPSSession: true
+
+      - name: Check for spokeNetworking Changes
+        id: git_spokenetworking_diff
+        shell: bash
+        run: |
+          git_spoke=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep)
+          echo "gitSpokeOUTPUT=$git_spoke" >> $GITHUB_ENV
