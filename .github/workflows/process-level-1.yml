@@ -21,6 +21,7 @@ env:
 jobs:
   validate_bicep:
     name: 'Validate Bicep files'
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -40,6 +41,7 @@ jobs:
   validate_mg:
     name: 'Management Group What-If'
     needs: validate_bicep
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -58,7 +60,6 @@ jobs:
       
       - name: Az CLI What-If Management Groups
         id: create_mgs_whatif
-        if: ${{ github.event_name == 'pull_request' }}
         shell: pwsh
         run: |
           az deployment tenant what-if --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
@@ -80,16 +81,14 @@ jobs:
 
   confirm_mg:
     name: 'Confirm Management Group deployment'
-    needs: validate_mg
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: CONFIRM
     steps:
-      - run: echo "Confirm deployment"
+      - run: echo "Confirm management group deployment"
 
   check_mg:
     name: 'Check if management group exist'
-    needs: validate_mg
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
@@ -112,15 +111,15 @@ jobs:
         run: |
           $check = az account management-group list --query "[?name=='${{ env.ManagementGroupPrefix }}']" | ConvertFrom-Json
           if ($check){
-            Write-Output '::set-output name=MG_CREATED::true'
+            Write-Output '::set-output name=MG_EXISTS::true'
           } else {
-            Write-Output '::set-output name=MG_CREATED::false'
+            Write-Output '::set-output name=MG_EXISTS::false'
           }
 
   validate_policy:
     name: "Custom Policy Definitions What-If"
     needs: check_mg
-    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_CREATED == 'true' }}
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -163,7 +162,7 @@ jobs:
   validate_rbac:
     name: "Custom Role Definitions What-If"
     needs: check_mg
-    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_CREATED == 'true' }}
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -206,7 +205,7 @@ jobs:
   deploy_mg:
     name: 'Deploy Management Groups'
     needs: confirm_mg
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -232,18 +231,18 @@ jobs:
             --location ${{ env.Location }}
 
   confirm_policy_rbac:
-    name: 'Confirm Custom Role Definitions and RBAC Deployment'
-    needs: ['validate_rbac', 'validate_policy', 'deploy_mg']
-    if: ${{ github.event_name == 'pull_request' }}
+    name: 'Confirm Custom Policy Definitions and Roles Deployment'
+    needs: deploy_mg
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: CONFIRM
     steps:
-      - run: echo "Confirm deployment"
+      - run: echo "Confirm Custom Policy Definitions and Custom Role Definitions deployment"
   
   deploy_policy:
     name: "Deploy Custom Policy Definitions"
     needs: confirm_policy_rbac
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -273,7 +272,7 @@ jobs:
   deploy_rbac:
     name: "Deploy Custom Role Definitions"
     needs: confirm_policy_rbac
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
 
     steps:
