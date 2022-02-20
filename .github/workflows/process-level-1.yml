@@ -242,7 +242,7 @@ jobs:
   deploy_rbac:
     name: "Deploy Custom Role Definitions"
     needs: confirm_policy_rbac
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' && jobs.check_mg.outputs.MG_CREATED == 'true' }}
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
     steps:
