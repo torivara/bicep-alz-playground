@@ -67,7 +67,7 @@ jobs:
             --parameters @platform/level-1/managementGroups/managementGroups.parameters.json `
             --location ${{ env.Location }} | Tee-Object -Variable mgOutput
           if ($mgOutput.length -gt 65536) {
-              $mgOutput = $mgOutput.Substring(0,65500)
+              $mgOutput = $mgOutput.Substring(0,65000)
               $mgOutput += "`nTruncated"
             }
           $mgOutput | Out-File -FilePath /tmp/mgOutput.md -Encoding UTF8 -Force
@@ -142,9 +142,9 @@ jobs:
             az deployment mg what-if --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
               --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.json `
               --location ${{ env.Location }} `
-              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
+              --management-group-id ${{ env.ManagementGroupPrefix }} --result-format ResourceIdOnly | Tee-Object -Variable policyOutput
             if ($policyOutput.length -gt 65536) {
-              $policyOutput = $policyOutput.Substring(0,65500)
+              $policyOutput = $policyOutput.Substring(0,65000)
               $policyOutput += "`nTruncated"
             }
             $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
@@ -186,7 +186,7 @@ jobs:
               --location ${{ env.Location }} `
               --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable rbacOutput
             if ($rbacOutput.length -gt 65536) {
-              $rbacOutput = $rbacOutput.Substring(0,65500)
+              $rbacOutput = $rbacOutput.Substring(0,65000)
               $rbacOutput += "`nTruncated"
             }
             $rbacOutput | Out-File -FilePath /tmp/rbacOutput.md -Encoding UTF8 -Force
