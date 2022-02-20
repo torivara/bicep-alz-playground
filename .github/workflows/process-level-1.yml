@@ -15,9 +15,6 @@ on:
       - "platform/level-1/**.json"
   workflow_dispatch: {}
 
-env:
-  ResourceGroupName: "rsg-github-pr-${{ github.event.number }}"
-
 jobs:
   validate_bicep:
     name: validate
@@ -32,37 +29,115 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.ALZ_AZURE_SECRET_UNIT_TESTS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_MG_CONTRIBUTOR }}
           enable-AzPSSession: true
       
-      - name: Check for managementGroup Changes
-        id: git_management_diff
-        shell: bash
-        run: |
-          git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/managementGroups/managementGroups.bicep
-          git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep
-          git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep
-          git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep
-          git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep
-          git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep
+      - uses: technote-space/get-diff-action@v6
+        id: diff_action
+        with:
+          PATTERNS: |
+            managementGroups.bicep
+            customRoleDefinitions.bicep
+            custom-policy-definitions.bicep
+            policyAssignmentManagementGroup.bicep
+            subscriptionPlacement.bicep
+            platform/level-1/**.json
       
-      - name: Check for logging Changes
-        id: git_logging_diff
-        shell: bash
+      - name: BicepDemo - Validate Bicep Files
+        shell: pwsh
         run: |
-          git_logging=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/logging/logging.bicep)
-          echo "gitLoggingOUTPUT=$git_logging"  >> $GITHUB_ENV
+          foreach ($file in ${{ env.GIT_DIFF }}) {
+            if ($file -like "*.bicep"){
+              bicep build $file
+            }
+          }
+          
+      - name: Az CLI What-If Management Groups for PR
+        id: create_mgs
+        if: ${{ github.event_name == 'pull_request' && steps.diff_action.outputs.diff != '' }}
+        shell: pwsh
+        run: |
+          az deployment tenant what-if --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
+            --paramerers @platform/level-1/managementGroups/managementGroups.parameters.json
+            --location ${{ env.Location }} | Tee-Object -Variable mgOutput
+          $mgOutput | Out-File -FilePath /tmp/mgOutput.md -Encoding UTF8 -Force
+      
+      - name: Az CLI What-If Custom Role Definitions for PR
+        id: create_rbac_roles
+        if: ${{ github.event_name == 'pull_request' && steps.diff_action.outputs.diff != '' }}
+        shell: pwsh
+        run: |
+            az deployment mg what-if --template-file  alz-source/infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep `
+              --parameters @platform/level-1/customRoleDefinitions/customRoleDefinitions.parameters.json `
+              --location ${{ env.Location }} `
+              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable rbacOutput
+            $rbacOutput | Out-File -FilePath /tmp/rbacOutput.md -Encoding UTF8 -Force
 
-      - name: Check for hubNetworking Changes
-        id: git_hubnetworking_diff
-        shell: bash
+      - name: Az CLI What-If Custom Policy Definitions for PR
+        id: create_policy_defs
+        if: ${{ github.event_name == 'pull_request' && steps.diff_action.outputs.diff != '' }}
+        shell: pwsh
         run: |
-          git_hub=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep)
-          echo "gitHubOUTPUT=$git_hub" >> $GITHUB_ENV
+            az deployment mg create --template-file  alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep `
+              --parameters @platform/level-1/policyDefinitions/custom-policy-definitions.parameters.example.json `
+              --location ${{ env.Location }} `
+              --management-group-id ${{ env.ManagementGroupPrefix }} | Tee-Object -Variable policyOutput
+            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
+        
+      - name: BicepDemo - Post MG output
+        shell: pwsh
+        if: github.event_name == 'pull_request' && steps.create_mgs.outcome == 'success'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/mgOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: BicepDemo - Post RBAC output
+        shell: pwsh
+        if: github.event_name == 'pull_request' && steps.create_rbac_roles.outcome == 'success'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/rbacOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: BicepDemo - Post policy output
+        shell: pwsh
+        if: github.event_name == 'pull_request' && steps.create_policy_defs.outcome == 'success'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policyOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check for spokeNetworking Changes
-        id: git_spokenetworking_diff
-        shell: bash
-        run: |
-          git_spoke=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep)
-          echo "gitSpokeOUTPUT=$git_spoke" >> $GITHUB_ENV
+      # - name: What-If deployment
+      #   id: whatifdeployment
+      #   shell: pwsh
+      #   if: github.event_name == 'pull_request'
+      #   run: |
+      #     foreach ($file in ${{ env.GIT_DIFF }}) {
+      #       if ($file -eq "managementGroups.parameters.json"){
+      #         # Perform what-if deployment and output to variable and console
+      #         az deployment tenant what-if `
+      #         --template-file demos/flex/hub-spoke/solutions/tieredapp/deploy.bicep |
+      #         Tee-Object -Variable managementGroupsOutput
+              
+      #         # Set content of temporary output markdown file
+      #         $managementGroupsOutput | Out-File -FilePath /tmp/managementGroupsOutput.md -Encoding UTF8 -Force
+      #       } elseif ($file -eq "customRoleDefinitions.parameters.json") {
+      #         # Perform what-if deployment and output to variable and console
+      #         az deployment mg create --template-file infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep  --parameters @infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.parameters.example.json --location ${{ env.Location }} --management-group-id ${{ env.ManagementGroupPrefix }}
+      #         az deployment tenant what-if `
+      #         --template-file demos/flex/hub-spoke/solutions/tieredapp/deploy.bicep |
+      #         Tee-Object -Variable customRoleDefinitionsOutput
+              
+      #         # Set content of temporary output markdown file
+      #         $customRoleDefinitionsOutput | Out-File -FilePath /tmp/customRoleDefinitionsOutput.md -Encoding UTF8 -Force
+      #       } elseif ($file -eq "custom-policy-definitions.paramers.json") {
+      #         # Perform what-if deployment and output to variable and console
+      #         az deployment tenant what-if `
+      #         --template-file demos/flex/hub-spoke/solutions/tieredapp/deploy.bicep |
+      #         Tee-Object -Variable customPolicyDefinitionsOutput
+
+      #         # Set content of temporary output markdown file
+      #         $customPolicyDefinitionsOutput | Out-File -FilePath /tmp/customPolicyDefinitionsOutput.md -Encoding UTF8 -Force
+      #       }
+      #     }
