@@ -313,6 +313,7 @@ jobs:
 
   confirm_policy_role:
     name: 'Confirm deployment'
+    needs: ['deploy_logging', 'deploy_hubNetworking']
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: CONFIRM
