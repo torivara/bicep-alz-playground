@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "parRoleDefinitionId": {
-      "value": "/providers/Microsoft.Authorization/roleDefinitions/b2960c40-d3db-5190-94c1-5b07c9547956"
+      "value": "b2960c40-d3db-5190-94c1-5b07c9547956"
     },
     "parAssigneePrincipalType": {
       "value": "Group"
