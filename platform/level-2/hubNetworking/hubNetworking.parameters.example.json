@@ -6,10 +6,10 @@
       "value": true
     },
     "parDdosEnabled": {
-      "value": true
+      "value": false
     },
     "parAzureFirewallEnabled": {
-      "value": true
+      "value": false
     },
     "parPrivateDNSZonesEnabled": {
       "value": true
