@@ -146,103 +146,6 @@ jobs:
               --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
               --parameters @platform/level-2/logging/logging.parameters.json `
 
-  validate_policyassignments:
-    name: "Policy Assignments What-If"
-    needs: check_mg
-    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: 'true'
-      
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: false
-          allow-no-subscriptions: true
-
-      - name: Az CLI What-If Policy Assignments
-        id: create_policyassignments_whatif
-        shell: pwsh
-        run: |
-          New-Item -Path /tmp/ -Name policy -ItemType Directory -Force
-          foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
-            az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
-            --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
-            --location ${{ env.Location }} `
-            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
-            $output = (Get-Variable -Name $($file.baseName)).Value
-            if ($output.length -gt 65536) {
-              $output = $var.Value.Substring(0,65000)
-              $output += "`nTruncated"
-            }
-            $output | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
-          }
-      
-      - name: Post policy assignments output to PR
-        shell: pwsh
-        if: ${{ github.event_name == 'pull_request' && steps.create_policyassignments_whatif.outcome == 'success' }}
-        run: |
-          foreach ($file in (Get-ChildItem /tmp/policy)) {
-            gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
-          }
-          
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  validate_roleassignments:
-    name: "Role Assignments What-If"
-    needs: check_mg
-    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: 'true'
-      
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: false
-          allow-no-subscriptions: true
-
-      - name: Az CLI What-If Role Assignments
-        id: create_roleassignments_whatif
-        shell: pwsh
-        run: |
-          New-Item -Path /tmp/ -Name role -ItemType Directory -Force
-          foreach ($file in (Get-ChildItem -path platform/level-2/roleAssignments -Recurse -Include '*.json')) {
-            az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep `
-            --parameters "@platform/level-2/roleAssignments/$($file.Name)" `
-            --location ${{ env.Location }} `
-            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
-            $output = (Get-Variable -Name $($file.baseName)).Value
-            if ($output.length -gt 65536) {
-              $output = $var.Value.Substring(0,65000)
-              $output += "`nTruncated"
-            }
-            $output | Out-File -FilePath "/tmp/role/$($file.baseName).md" -Encoding UTF8 -Force
-          }
-      
-      - name: Post role assignments output to PR
-        shell: pwsh
-        if: ${{ github.event_name == 'pull_request' && steps.create_roleassignments_whatif.outcome == 'success' }}
-        run: |
-          foreach ($file in (Get-ChildItem /tmp/role)) {
-            gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
-          }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   validate_hubNetworking:
     name: "HubNetworking What-If"
     needs: check_mg
@@ -310,6 +213,103 @@ jobs:
             az deployment group create --resource-group ${{ env.NetworkingResourceGroupName }} `
               --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json `
+
+  validate_policyassignments:
+    name: "Policy Assignments What-If"
+    needs: ['validate_hubNetworking', 'validate_logging']
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI What-If Policy Assignments
+        id: create_policyassignments_whatif
+        shell: pwsh
+        run: |
+          New-Item -Path /tmp/ -Name policy -ItemType Directory -Force
+          foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
+            az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
+            --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
+            --location ${{ env.Location }} `
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
+            $output = (Get-Variable -Name $($file.baseName)).Value
+            if ($output.length -gt 65536) {
+              $output = $var.Value.Substring(0,65000)
+              $output += "`nTruncated"
+            }
+            $output | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
+          }
+      
+      - name: Post policy assignments output to PR
+        shell: pwsh
+        if: ${{ github.event_name == 'pull_request' && steps.create_policyassignments_whatif.outcome == 'success' }}
+        run: |
+          foreach ($file in (Get-ChildItem /tmp/policy)) {
+            gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
+          }
+          
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  validate_roleassignments:
+    name: "Role Assignments What-If"
+    needs: ['validate_hubNetworking', 'validate_logging']
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI What-If Role Assignments
+        id: create_roleassignments_whatif
+        shell: pwsh
+        run: |
+          New-Item -Path /tmp/ -Name role -ItemType Directory -Force
+          foreach ($file in (Get-ChildItem -path platform/level-2/roleAssignments -Recurse -Include '*.json')) {
+            az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep `
+            --parameters "@platform/level-2/roleAssignments/$($file.Name)" `
+            --location ${{ env.Location }} `
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
+            $output = (Get-Variable -Name $($file.baseName)).Value
+            if ($output.length -gt 65536) {
+              $output = $var.Value.Substring(0,65000)
+              $output += "`nTruncated"
+            }
+            $output | Out-File -FilePath "/tmp/role/$($file.baseName).md" -Encoding UTF8 -Force
+          }
+      
+      - name: Post role assignments output to PR
+        shell: pwsh
+        if: ${{ github.event_name == 'pull_request' && steps.create_roleassignments_whatif.outcome == 'success' }}
+        run: |
+          foreach ($file in (Get-ChildItem /tmp/role)) {
+            gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   confirm_policy_role:
     name: 'Confirm deployment'
