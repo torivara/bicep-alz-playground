@@ -42,6 +42,7 @@ jobs:
       
   check_mg:
     name: 'Check if management group exist'
+    needs: validate_bicep
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
@@ -72,7 +73,7 @@ jobs:
           }
   validate_logging:
     name: "Logging What-If"
-    needs: ['check_mg', 'validate_bicep']
+    needs: check_mg
     if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
     runs-on: ubuntu-latest
 
