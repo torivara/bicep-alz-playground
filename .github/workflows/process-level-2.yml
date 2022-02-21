@@ -167,12 +167,12 @@ jobs:
             --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
             --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
-            $var = Get-Variable -Name $($file.baseName)
-            if ($var.length -gt 65536) {
-              $var = $var.Substring(0,65000)
-              $var += "`nTruncated"
+            $output = (Get-Variable -Name $($file.baseName)).Value
+            if ($output.length -gt 65536) {
+              $output = $var.Value.Substring(0,65000)
+              $output += "`nTruncated"
             }
-            $var | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
+            $output | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
           }
       
       - name: Post policy assignments output to PR
@@ -216,12 +216,12 @@ jobs:
             --parameters "@platform/level-2/roleAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
             --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
-            $var = Get-Variable -Name $($file.baseName)
-            if ($var.length -gt 65536) {
-              $var = $var.Substring(0,65000)
-              $var += "`nTruncated"
+            $output = (Get-Variable -Name $($file.baseName)).Value
+            if ($output.length -gt 65536) {
+              $output = $var.Value.Substring(0,65000)
+              $output += "`nTruncated"
             }
-            $var | Out-File -FilePath "/tmp/role/$($file.baseName).md" -Encoding UTF8 -Force
+            $output | Out-File -FilePath "/tmp/role/$($file.baseName).md" -Encoding UTF8 -Force
           }
       
       - name: Post role assignments output to PR
