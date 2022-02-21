@@ -56,9 +56,11 @@ az ad sp create-for-rbac --name bicep-spn-owner `
 >Be advised that the json output from this command will not directly translate to the AZURE_CREDENTIALS json.
 >The Azure Login action apparently needs specific names for the values, and default is not correct.
 
-## Add github secret
+## Add github secrets
 
 Secret name: AZURE_CREDENTIALS
+
+Value:
 
 ```json
 {
@@ -69,3 +71,6 @@ Secret name: AZURE_CREDENTIALS
   "tenantId": "`your tenant id`"
 }
 ```
+
+Secret name: AZURE_HUB_SUBSCRIPTION_ID
+Value: `your subscription id` # Should be in the format of xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx

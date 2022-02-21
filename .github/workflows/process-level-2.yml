@@ -42,7 +42,6 @@ jobs:
       
   check_mg:
     name: 'Check if management group exist'
-    needs: validate_mg
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
@@ -87,9 +86,8 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
           enable-AzPSSession: false
-          allow-no-subscriptions: true
 
       - name: Az CLI What-If Logging
         id: create_logging_whatif
@@ -114,6 +112,7 @@ jobs:
   
   deploy_logging:
     name: "Deploy logging"
+    needs: check_mg
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
 
@@ -127,9 +126,8 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
           enable-AzPSSession: false
-          allow-no-subscriptions: true
 
       - name: Az CLI Create Logging
         id: create_logging
@@ -163,21 +161,27 @@ jobs:
         id: create_policyassignments_whatif
         shell: pwsh
         run: |
+          foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
-            --parameters @platform/level-2/policyAssignments/policyAssignmentManagementGroup.parameters.example-dine.json `
+            --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
-            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable policyOutput
-            if ($policyOutput.length -gt 65536) {
-              $policyOutput = $policyOutput.Substring(0,65000)
-              $policyOutput += "`nTruncated"
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
+            $var = Get-Variable -Name $($file.baseName)
+            if ($var.length -gt 65536) {
+              $var = $var.Substring(0,65000)
+              $var += "`nTruncated"
             }
-            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
+            $var | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
+          }
       
       - name: Post policy assignments output to PR
         shell: pwsh
         if: ${{ github.event_name == 'pull_request' && steps.create_policyassignments_whatif.outcome == 'success' }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policyOutput.md
+          foreach ($file in (Get-ChildItem /tmp/policy)) {
+            gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
+          }
+          
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -205,21 +209,26 @@ jobs:
         id: create_roleassignments_whatif
         shell: pwsh
         run: |
+          foreach ($file in (Get-ChildItem -path platform/level-2/roleAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep `
-            --parameters @platform/level-2/roleAssignments/roleAssignmentManagementGroup.parameters.security-group.example.json `
+            --parameters "@platform/level-2/roleAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
-            --management-group-id "${{ env.ManagementGroupPrefix }}-platform" | Tee-Object -Variable rolesOutput
-            if ($rolesOutput.length -gt 65536) {
-              $rolesOutput = $rolesOutput.Substring(0,65000)
-              $rolesOutput += "`nTruncated"
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
+            $var = Get-Variable -Name $($file.baseName)
+            if ($var.length -gt 65536) {
+              $var = $var.Substring(0,65000)
+              $var += "`nTruncated"
             }
-            $rolesOutput | Out-File -FilePath /tmp/rolesOutput.md -Encoding UTF8 -Force
+            $var | Out-File -FilePath "/tmp/role/$($file.baseName).md" -Encoding UTF8 -Force
+          }
       
       - name: Post role assignments output to PR
         shell: pwsh
         if: ${{ github.event_name == 'pull_request' && steps.create_roleassignments_whatif.outcome == 'success' }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/rolesOutput.md
+          foreach ($file in (Get-ChildItem /tmp/role)) {
+            gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
+          }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -239,9 +248,8 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_NETWORK }}
           enable-AzPSSession: false
-          allow-no-subscriptions: true
 
       - name: Az CLI What-If Hub Networking
         id: create_hubnetworking_whatif
@@ -265,7 +273,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
   deploy_hubNetworking:
-    name: "HubNetworking What-If"
+    name: "HubNetworking Deployment"
     needs: check_mg
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
@@ -280,14 +288,14 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_NETWORK }}
           enable-AzPSSession: false
           allow-no-subscriptions: true
 
-      - name: Az CLI What-If Logging
+      - name: Az CLI Deploy Networking
         id: create_hubnetworking
         shell: pwsh
         run: |
-            az deployment group what-if --resource-group ${{ env.NetworkingResourceGroupName }} `
+            az deployment group create --resource-group ${{ env.NetworkingResourceGroupName }} `
               --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json `
