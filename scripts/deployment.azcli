@@ -9,3 +9,6 @@ az ad group create --display-name 'netops' `
 az ad group create --display-name 'secops' `
   --mail-nickname 'secops' `
   --description 'Security Operations Personnel'
+
+az group create --name 'alz-logging-rg' --location 'westeurope'
+az group create --name 'alz-networking-rg' --location 'westeurope'
