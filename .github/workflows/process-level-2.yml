@@ -16,7 +16,6 @@ on:
 env:
   Location: 'westeurope'
   ManagementGroupPrefix: 'alz'
-  HubSubscriptionId: ${{ secrets.AZURE_HUB_SUBSCRIPTION_ID }}
   LoggingResourceGroupName: 'alz-logging-rg'
   NetworkingResourceGroupName: 'alz-networking-rg'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
@@ -87,9 +86,8 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
           enable-AzPSSession: false
-          subscription-id: ${{ env.hubSubscriptionId }}
 
       - name: Az CLI What-If Logging
         id: create_logging_whatif
@@ -128,9 +126,8 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
           enable-AzPSSession: false
-          subscription-id: ${{ env.hubSubscriptionId }}
 
       - name: Az CLI Create Logging
         id: create_logging
@@ -251,9 +248,8 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_NETWORK }}
           enable-AzPSSession: false
-          subscription-id: ${{ env.hubSubscriptionId }}
 
       - name: Az CLI What-If Hub Networking
         id: create_hubnetworking_whatif
@@ -292,7 +288,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_NETWORK }}
           enable-AzPSSession: false
           allow-no-subscriptions: true
 
