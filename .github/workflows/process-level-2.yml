@@ -42,7 +42,6 @@ jobs:
       
   check_mg:
     name: 'Check if management group exist'
-    needs: validate_mg
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
@@ -114,6 +113,7 @@ jobs:
   
   deploy_logging:
     name: "Deploy logging"
+    needs: check_mg
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
 
