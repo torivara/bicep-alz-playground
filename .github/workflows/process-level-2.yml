@@ -16,6 +16,7 @@ on:
 env:
   Location: 'westeurope'
   ManagementGroupPrefix: 'alz'
+  HubSubscriptionId: ${{ secrets.AZURE_HUB_SUBSCRIPTION_ID }}
   LoggingResourceGroupName: 'alz-logging-rg'
   NetworkingResourceGroupName: 'alz-networking-rg'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
@@ -88,7 +89,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
-          allow-no-subscriptions: true
+          subscription-id: ${{ env.hubSubscriptionId }}
 
       - name: Az CLI What-If Logging
         id: create_logging_whatif
@@ -129,7 +130,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
-          allow-no-subscriptions: true
+          subscription-id: ${{ env.hubSubscriptionId }}
 
       - name: Az CLI Create Logging
         id: create_logging
@@ -252,7 +253,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
-          allow-no-subscriptions: true
+          subscription-id: ${{ env.hubSubscriptionId }}
 
       - name: Az CLI What-If Hub Networking
         id: create_hubnetworking_whatif
