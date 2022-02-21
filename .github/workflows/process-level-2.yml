@@ -173,14 +173,17 @@ jobs:
               $var = $var.Substring(0,65000)
               $var += "`nTruncated"
             }
-            $var | Out-File -FilePath "/tmp/$($file.baseName).md" -Encoding UTF8 -Force
+            $var | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
           }
       
       - name: Post policy assignments output to PR
         shell: pwsh
         if: ${{ github.event_name == 'pull_request' && steps.create_policyassignments_whatif.outcome == 'success' }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policyOutput.md
+          foreach ($file in (Get-ChildItem /tmp/policy)) {
+            gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
+          }
+          
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -218,14 +221,16 @@ jobs:
               $var = $var.Substring(0,65000)
               $var += "`nTruncated"
             }
-            $var | Out-File -FilePath "/tmp/$($file.baseName).md" -Encoding UTF8 -Force
+            $var | Out-File -FilePath "/tmp/role/$($file.baseName).md" -Encoding UTF8 -Force
           }
       
       - name: Post role assignments output to PR
         shell: pwsh
         if: ${{ github.event_name == 'pull_request' && steps.create_roleassignments_whatif.outcome == 'success' }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/rolesOutput.md
+          foreach ($file in (Get-ChildItem /tmp/role)) {
+            gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
+          }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
