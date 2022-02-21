@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "parLogAnalyticsWorkspaceName": {
-      "value": "alz-log-analytics"
+      "value": "alz-logging-ws"
     },
     "parLogAnalyticsWorkspaceRegion": {
-      "value": "eastus"
+      "value": "westeurope"
     },
     "parLogAnalyticsWorkspaceLogRetentionInDays": {
       "value": 365
@@ -26,10 +26,10 @@
       ]
     },
     "parAutomationAccountName": {
-      "value": "alz-automation-account"
+      "value": "alz-logging-aa"
     },
     "parAutomationAccountRegion": {
-      "value": "eastus2"
+      "value": "westeurope"
     },
     "parTelemetryOptOut": {
       "value": false

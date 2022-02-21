@@ -2,9 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "parRoleAssignmentNameGuid": {
-      "value": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-    },
     "parRoleDefinitionId": {
       "value": "/providers/Microsoft.Authorization/roleDefinitions/b2960c40-d3db-5190-94c1-5b07c9547956"
     },
