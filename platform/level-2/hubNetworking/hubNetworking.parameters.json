@@ -40,12 +40,6 @@
     "parHubNetworkName": {
       "value": "alz-hub-WE-vnet"
     },
-    "parAzureFirewallName": {
-      "value": "alz-azure-firewall"
-    },
-    "parAzureFirewallTier": {
-      "value": "Standard"
-    },
     "parHubRouteTableName": {
       "value": "alz-hub-WE-routetable"
     },
@@ -115,7 +109,7 @@
       "value": []
     },
     "parNetworkDNSEnableProxy": {
-      "value": true
+      "value": false
     },
     "parDisableBGPRoutePropagation": {
       "value": false
