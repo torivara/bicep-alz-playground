@@ -42,6 +42,7 @@ jobs:
       
   check_mg:
     name: 'Check if management group exist'
+    needs: validate_bicep
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
@@ -110,9 +111,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
+  confirm_net_log:
+    name: 'Confirm deployment'
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: CONFIRM
+    steps:
+      - run: echo "Confirm Network and Logging deployment"
+
   deploy_logging:
     name: "Logging Deployment"
-    needs: check_mg
+    needs: confirm_net_log
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
 
@@ -167,12 +176,12 @@ jobs:
             --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
             --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
-            $var = Get-Variable -Name $($file.baseName)
-            if ($var.length -gt 65536) {
-              $var = $var.Substring(0,65000)
-              $var += "`nTruncated"
+            $output = (Get-Variable -Name $($file.baseName)).Value
+            if ($output.length -gt 65536) {
+              $output = $var.Value.Substring(0,65000)
+              $output += "`nTruncated"
             }
-            $var | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
+            $output | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
           }
       
       - name: Post policy assignments output to PR
@@ -216,12 +225,12 @@ jobs:
             --parameters "@platform/level-2/roleAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
             --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
-            $var = Get-Variable -Name $($file.baseName)
-            if ($var.length -gt 65536) {
-              $var = $var.Substring(0,65000)
-              $var += "`nTruncated"
+            $output = (Get-Variable -Name $($file.baseName)).Value
+            if ($output.length -gt 65536) {
+              $output = $var.Value.Substring(0,65000)
+              $output += "`nTruncated"
             }
-            $var | Out-File -FilePath "/tmp/role/$($file.baseName).md" -Encoding UTF8 -Force
+            $output | Out-File -FilePath "/tmp/role/$($file.baseName).md" -Encoding UTF8 -Force
           }
       
       - name: Post role assignments output to PR
@@ -276,7 +285,7 @@ jobs:
   
   deploy_hubNetworking:
     name: "HubNetworking Deployment"
-    needs: check_mg
+    needs: confirm_net_log
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
 
@@ -301,3 +310,72 @@ jobs:
             az deployment group create --resource-group ${{ env.NetworkingResourceGroupName }} `
               --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json `
+
+  confirm_policy_role:
+    name: 'Confirm deployment'
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: CONFIRM
+    steps:
+      - run: echo "Confirm Policy and Role Assignments deployment"
+
+  deploy_policyassignments:
+    name: "Policy Assignments Deployment"
+    needs: confirm_policy_role
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI Deploy Policy Assignments
+        id: create_policyassignments
+        shell: pwsh
+        run: |
+          foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
+            az deployment mg create --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
+            --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
+            --location ${{ env.Location }} `
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones"
+          }
+  deploy_roleassignments:
+    name: "Role Assignments Deployment"
+    needs: confirm_policy_role
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI Deploy Role Assignments
+        id: create_roleassignments
+        shell: pwsh
+        run: |
+          foreach ($file in (Get-ChildItem -path platform/level-2/roleAssignments -Recurse -Include '*.json')) {
+            az deployment mg create --template-file alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep `
+            --parameters "@platform/level-2/roleAssignments/$($file.Name)" `
+            --location ${{ env.Location }} `
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones"
+          }
