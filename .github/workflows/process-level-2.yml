@@ -163,15 +163,18 @@ jobs:
         id: create_policyassignments_whatif
         shell: pwsh
         run: |
+          foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
-            --parameters @platform/level-2/policyAssignments/policyAssignmentManagementGroup.parameters.example-dine.json `
+            --parameters @"platform/level-2/policyAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
-            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable policyOutput
-            if ($policyOutput.length -gt 65536) {
-              $policyOutput = $policyOutput.Substring(0,65000)
-              $policyOutput += "`nTruncated"
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
+            $var = Get-Variable -Name $($file.baseName)
+            if ($var.length -gt 65536) {
+              $var = $var.Substring(0,65000)
+              $var += "`nTruncated"
             }
-            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
+            $var | Out-File -FilePath "/tmp/$($file.baseName).md" -Encoding UTF8 -Force
+          }
       
       - name: Post policy assignments output to PR
         shell: pwsh
@@ -205,15 +208,18 @@ jobs:
         id: create_roleassignments_whatif
         shell: pwsh
         run: |
+          foreach ($file in (Get-ChildItem -path platform/level-2/roleAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep `
-            --parameters @platform/level-2/roleAssignments/roleAssignmentManagementGroup.parameters.security-group.example.json `
+            --parameters @"platform/level-2/roleAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
-            --management-group-id "${{ env.ManagementGroupPrefix }}-platform" | Tee-Object -Variable rolesOutput
-            if ($rolesOutput.length -gt 65536) {
-              $rolesOutput = $rolesOutput.Substring(0,65000)
-              $rolesOutput += "`nTruncated"
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
+            $var = Get-Variable -Name $($file.baseName)
+            if ($var.length -gt 65536) {
+              $var = $var.Substring(0,65000)
+              $var += "`nTruncated"
             }
-            $rolesOutput | Out-File -FilePath /tmp/rolesOutput.md -Encoding UTF8 -Force
+            $var | Out-File -FilePath "/tmp/$($file.baseName).md" -Encoding UTF8 -Force
+          }
       
       - name: Post role assignments output to PR
         shell: pwsh
