@@ -1,3 +1,23 @@
 az ad sp create-for-rbac --name bicep-spn-owner `
  --role 'Owner' `
  --scope '/'
+
+az ad sp create-for-rbac --name "bicep-network-contributor" `
+  --role contributor `
+  --scopes /subscriptions/{subscription-id}/resourceGroups/{networking resource-group}
+
+az ad sp create-for-rbac --name "bicep-logging-contributor" `
+  --role contributor `
+  --scopes /subscriptions/{subscription-id}/resourceGroups/{logging resource-group}
+
+az ad group create --display-name 'netops' `
+  --mail-nickname 'netops' `
+  --description 'Network Operations Personnel'
+
+az ad group create --display-name 'secops' `
+  --mail-nickname 'secops' `
+  --description 'Security Operations Personnel'
+
+az group create --name 'alz-logging-rg' --location 'westeurope'
+az group create --name 'alz-networking-rg' --location 'westeurope'
+
