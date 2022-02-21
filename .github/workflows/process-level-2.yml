@@ -163,7 +163,7 @@ jobs:
         run: |
           foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
-            --parameters @"platform/level-2/policyAssignments/$($file.Name)" `
+            --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
             --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
             $var = Get-Variable -Name $($file.baseName)
@@ -211,7 +211,7 @@ jobs:
         run: |
           foreach ($file in (Get-ChildItem -path platform/level-2/roleAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep `
-            --parameters @"platform/level-2/roleAssignments/$($file.Name)" `
+            --parameters "@platform/level-2/roleAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
             --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable $($file.baseName)
             $var = Get-Variable -Name $($file.baseName)
