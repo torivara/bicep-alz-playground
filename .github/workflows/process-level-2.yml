@@ -1,24 +1,29 @@
 name: Process level-2
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "platform/level-2/**.json"
   pull_request:
     branches:
       - main
     paths:
-      - "alz-source/infra-as-code/bicep/modules/logging/logging.bicep"
-      - "alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep"
-      - "alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentSubscription.bicep"
-      - "alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentSubscriptionMany.bicep"
-      - "platform/level-2/**.bicep"
       - "platform/level-2/**.json"
   workflow_dispatch: {}
 
 env:
-  ResourceGroupName: "rsg-github-pr-${{ github.event.number }}"
+  Location: 'westeurope'
+  ManagementGroupPrefix: 'alz'
+  LoggingResourceGroupName: 'alz-logging-rg'
+  NetworkingResourceGroupName: 'alz-networking-rg'
+  TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
 
 jobs:
   validate_bicep:
-    name: validate
+    name: 'Validate Bicep files'
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -26,23 +31,263 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          submodules: 'true'
+      
+      - name: BicepDemo - Validate Bicep Files
+        shell: pwsh
+        run: |
+          bicep build alz-source/infra-as-code/bicep/modules/logging/logging.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep
+      
+  check_mg:
+    name: 'Check if management group exist'
+    needs: validate_mg
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    outputs:
+      MG_EXISTS: ${{ steps.check_mg.outputs.MG_EXISTS }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
       
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.ALZ_AZURE_SECRET_UNIT_TESTS }}
-          enable-AzPSSession: true
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
       
-      - name: Check for logging Changes
-        id: git_logging_diff
-        shell: bash
+      - name: Check if top level management group exists
+        id: check_mg
+        shell: pwsh
         run: |
-          git_logging=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/logging/logging.bicep)
-          echo "gitLoggingOUTPUT=$git_logging"  >> $GITHUB_ENV
+          $check = az account management-group list --query "[?name=='${{ env.ManagementGroupPrefix }}']" | ConvertFrom-Json
+          if ($check){
+            Write-Output '::set-output name=MG_EXISTS::true'
+          } else {
+            Write-Output '::set-output name=MG_EXISTS::false'
+          }
+  validate_logging:
+    name: "Logging What-If"
+    needs: check_mg
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
+    runs-on: ubuntu-latest
 
-      - name: Check for hubNetworking Changes
-        id: git_hubnetworking_diff
-        shell: bash
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI What-If Logging
+        id: create_logging_whatif
+        shell: pwsh
         run: |
-          git_hub=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep)
-          echo "gitHubOUTPUT=$git_hub" >> $GITHUB_ENV
+            az deployment group what-if --resource-group ${{ env.LoggingResourceGroupName }} `
+              --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
+              --parameters @platform/level-2/logging/logging.parameters.json ` | Tee-Object -Variable policyOutput
+            if ($policyOutput.length -gt 65536) {
+              $policyOutput = $policyOutput.Substring(0,65000)
+              $policyOutput += "`nTruncated"
+            }
+            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
+      
+      - name: Post logging output to PR
+        shell: pwsh
+        if: ${{ github.event_name == 'pull_request' && steps.create_logging_whatif.outcome == 'success' }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policyOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  deploy_logging:
+    name: "Deploy logging"
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI Create Logging
+        id: create_logging
+        shell: pwsh
+        run: |
+            az deployment group create --resource-group ${{ env.LoggingResourceGroupName }} `
+              --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
+              --parameters @platform/level-2/logging/logging.parameters.json `
+
+  validate_policyassignments:
+    name: "Policy Assignments What-If"
+    needs: check_mg
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI What-If Policy Assignments
+        id: create_policyassignments_whatif
+        shell: pwsh
+        run: |
+            az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
+            --parameters @platform/level-2/policyAssignments/policyAssignmentManagementGroup.parameters.example-dine.json `
+            --location ${{ env.Location }} `
+            --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones" | Tee-Object -Variable policyOutput
+            if ($policyOutput.length -gt 65536) {
+              $policyOutput = $policyOutput.Substring(0,65000)
+              $policyOutput += "`nTruncated"
+            }
+            $policyOutput | Out-File -FilePath /tmp/policyOutput.md -Encoding UTF8 -Force
+      
+      - name: Post policy assignments output to PR
+        shell: pwsh
+        if: ${{ github.event_name == 'pull_request' && steps.create_policyassignments_whatif.outcome == 'success' }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policyOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  validate_roleassignments:
+    name: "Role Assignments What-If"
+    needs: check_mg
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI What-If Role Assignments
+        id: create_roleassignments_whatif
+        shell: pwsh
+        run: |
+            az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep `
+            --parameters @platform/level-2/roleAssignments/roleAssignmentManagementGroup.parameters.security-group.example.json `
+            --location ${{ env.Location }} `
+            --management-group-id "${{ env.ManagementGroupPrefix }}-platform" | Tee-Object -Variable rolesOutput
+            if ($rolesOutput.length -gt 65536) {
+              $rolesOutput = $rolesOutput.Substring(0,65000)
+              $rolesOutput += "`nTruncated"
+            }
+            $rolesOutput | Out-File -FilePath /tmp/rolesOutput.md -Encoding UTF8 -Force
+      
+      - name: Post role assignments output to PR
+        shell: pwsh
+        if: ${{ github.event_name == 'pull_request' && steps.create_roleassignments_whatif.outcome == 'success' }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/rolesOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  validate_hubNetworking:
+    name: "HubNetworking What-If"
+    needs: check_mg
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI What-If Hub Networking
+        id: create_hubnetworking_whatif
+        shell: pwsh
+        run: |
+            az deployment group what-if --resource-group ${{ env.NetworkingResourceGroupName }} `
+              --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
+              --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json ` | Tee-Object -Variable networkOutput
+            if ($networkOutput.length -gt 65536) {
+              $networkOutput = $networkOutput.Substring(0,65000)
+              $networkOutput += "`nTruncated"
+            }
+            $networkOutput | Out-File -FilePath /tmp/networkOutput.md -Encoding UTF8 -Force
+      
+      - name: Post logging output to PR
+        shell: pwsh
+        if: ${{ github.event_name == 'pull_request' && steps.create_hubnetworking_whatif.outcome == 'success' }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/networkOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  deploy_hubNetworking:
+    name: "HubNetworking What-If"
+    needs: check_mg
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+
+      - name: Az CLI What-If Logging
+        id: create_hubnetworking
+        shell: pwsh
+        run: |
+            az deployment group what-if --resource-group ${{ env.NetworkingResourceGroupName }} `
+              --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
+              --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json `
