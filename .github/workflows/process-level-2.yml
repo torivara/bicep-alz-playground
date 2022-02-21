@@ -161,6 +161,7 @@ jobs:
         id: create_policyassignments_whatif
         shell: pwsh
         run: |
+          New-Item -Path /tmp/ -Name policy -ItemType Directory -Force
           foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
             --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
@@ -209,6 +210,7 @@ jobs:
         id: create_roleassignments_whatif
         shell: pwsh
         run: |
+          New-Item -Path /tmp/ -Name role -ItemType Directory -Force
           foreach ($file in (Get-ChildItem -path platform/level-2/roleAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/roleAssignments/roleAssignmentManagementGroup.bicep `
             --parameters "@platform/level-2/roleAssignments/$($file.Name)" `
