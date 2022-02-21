@@ -1,3 +1,11 @@
 az ad sp create-for-rbac --name bicep-spn-owner `
  --role 'Owner' `
  --scope '/'
+
+az ad group create --display-name 'netops' `
+  --mail-nickname 'netops' `
+  --description 'Network Operations Personnel'
+
+az ad group create --display-name 'secops' `
+  --mail-nickname 'secops' `
+  --description 'Security Operations Personnel'

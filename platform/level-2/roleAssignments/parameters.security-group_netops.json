@@ -6,13 +6,13 @@
       "value": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
     },
     "parRoleDefinitionId": {
-      "value": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+      "value": "/providers/Microsoft.Authorization/roleDefinitions/4a200286-e2a0-5239-aa8f-fe0a90dd2eb5"
     },
     "parAssigneePrincipalType": {
-      "value": "ServicePrincipal"
+      "value": "Group"
     },
     "parAssigneeObjectId": {
-      "value": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+      "value": "5f93009a-f4b1-4f37-9211-76e2fcac7b7a"
     },
     "parTelemetryOptOut": {
       "value": false
