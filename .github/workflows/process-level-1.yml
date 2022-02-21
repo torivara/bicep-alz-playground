@@ -118,7 +118,7 @@ jobs:
           } else {
             Write-Output '::set-output name=MG_EXISTS::false'
           }
-
+ 
   validate_policy:
     name: "Custom Policy Definitions What-If"
     needs: check_mg
