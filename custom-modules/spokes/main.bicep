@@ -62,11 +62,11 @@ param parManagementSubscriptionId string = ''
 @maxLength(36)
 param parIdentitySubscriptionId string = ''
 
-param parPlatformManagementMGName string
-param parPlatformConnectivityMGName string = ''
-param parPlatformIdentityMGName string = ''
-param parLandingZonesCorpMGName string
-param parLandingZonesOnlineMGName string
+param parPlatformManagementMGName string = '${parTopLevelManagementGroupPrefix}-platform-management'
+param parPlatformConnectivityMGName string = '${parTopLevelManagementGroupPrefix}-platform-connectivity'
+param parPlatformIdentityMGName string = '${parTopLevelManagementGroupPrefix}-platform-identity'
+param parLandingZonesCorpMGName string = '${parTopLevelManagementGroupPrefix}-landingzones-corp'
+param parLandingZonesOnlineMGName string = '${parTopLevelManagementGroupPrefix}-landingzones-online'
 
 // Managment Groups Varaibles - Used For Policy Assignments
 var varManagementGroupIDs = {
