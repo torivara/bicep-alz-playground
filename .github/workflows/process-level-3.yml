@@ -95,7 +95,7 @@ jobs:
           enable-AzPSSession: false
           allow-no-subscriptions: true
 
-      - name: Az CLI What-If Logging
+      - name: Az CLI What-If Spokes Deployment
         id: create_spokes_whatif
         shell: pwsh
         run: |
@@ -109,7 +109,7 @@ jobs:
             }
             $spokesOutput | Out-File -FilePath /tmp/spokesOutput.md -Encoding UTF8 -Force
       
-      - name: Post logging output to PR
+      - name: Post spokes deployment output to PR
         shell: pwsh
         if: ${{ github.event_name == 'pull_request' && steps.create_spokes_whatif.outcome == 'success' }}
         run: |
@@ -141,11 +141,12 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
+          allow-no-subscriptions: true
 
-      - name: Az CLI Create Logging
-        id: create_logging
+      - name: Az CLI Create Spokes Deployment
+        id: create_spokedeploy
         shell: pwsh
         run: |
             az deployment tenant create --template-file custom-modules/spokes/main.bicep `
