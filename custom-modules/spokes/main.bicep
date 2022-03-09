@@ -63,6 +63,7 @@ param parManagementSubscriptionId string = ''
 param parIdentitySubscriptionId string = ''
 
 param parPlatformManagementMGName string = '${parTopLevelManagementGroupPrefix}-platform-management'
+param parPlatformMGName string = '${parTopLevelManagementGroupPrefix}-platform'
 param parPlatformConnectivityMGName string = '${parTopLevelManagementGroupPrefix}-platform-connectivity'
 param parPlatformIdentityMGName string = '${parTopLevelManagementGroupPrefix}-platform-identity'
 param parLandingZonesCorpMGName string = '${parTopLevelManagementGroupPrefix}-landingzones-corp'
@@ -146,7 +147,7 @@ module modSubscriptionPlacementPlatform '../../alz-source/infra-as-code/bicep/mo
   scope: managementGroup(varManagementGroupIDs.platform)
   name: 'sub-placement-platform-all-in-one'
   params: {
-    parTargetManagementGroupId: parPlatformManagementMGName
+    parTargetManagementGroupId: parPlatformMGName
     parSubscriptionIds: [
       parPlatformSubscriptionId
     ]
