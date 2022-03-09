@@ -206,14 +206,41 @@ module modSubscriptionPlacementCorp '../../alz-source/infra-as-code/bicep/module
 }
 
 // Module - Subscription Placement - Online
-module modSubscriptionPlacementOnline '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = if (!empty(parOnlineSubscriptionIds)) {
+module modSubscriptionPlacementOnline '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = [for (onlineSub, i) in parOnlineSubscriptionIds: if (!empty(parOnlineSubscriptionIds)) {
   scope: managementGroup(varManagementGroupIDs.landingZonesOnline)
-  name: 'sub-placement-lz-online'
+  name: 'sub-placement-lz-online-${i}'
   params: {
     parTargetManagementGroupId: parLandingZonesOnlineMGName
     parSubscriptionIds: [
-      parOnlineSubscriptionIds
+      onlineSub.subscriptionId
     ]
     parTelemetryOptOut: parTelemetryOptOut
   }
-}
+}]
+
+// Module - Online Spoke Virtual Network Resource Group
+module modOnlineResourceGroupForSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep' = [for (onlineSub, i) in parOnlineSubscriptionIds: if (!empty(parOnlineSubscriptionIds)) {
+  scope: subscription(onlineSub.subscriptionId)
+  name: 'onlinespoke-rgfornetworking-${i}'
+  params: {
+    parResourceGroupLocation: parLocation
+    parResourceGroupName: parResourceGroupNameForSpokeNetworking
+    parTelemetryOptOut: parTelemetryOptOut
+  }
+}]
+
+// Module - Online Spoke Virtual Networks
+module modOnlineSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep' = [for (onlineSub, i) in parOnlineSubscriptionIds: if (!empty(parOnlineSubscriptionIds)) {
+  scope: resourceGroup(onlineSub.subscriptionId, parResourceGroupNameForSpokeNetworking)
+  name: 'onlinespokenetworking-${i}'
+  params: {
+    parRegion: parLocation
+    parSpokeNetworkName: onlineSub.vnetName
+    parSpokeNetworkAddressPrefix: onlineSub.addressPrefix
+    parDdosProtectionPlanId: parDDoSPlanResourceID
+    parDNSServerIPArray: parDNSServerIPArray
+    parNextHopIPAddress: ''
+    parTags: parTags
+    parTelemetryOptOut: parTelemetryOptOut
+  }
+}]
