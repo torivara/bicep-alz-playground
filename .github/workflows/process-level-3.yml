@@ -91,8 +91,9 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
+          allow-no-subscriptions: true
 
       - name: Az CLI What-If Logging
         id: create_spokes_whatif
