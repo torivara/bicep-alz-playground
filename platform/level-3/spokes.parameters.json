@@ -14,6 +14,18 @@
       "parAzureFirewallEnabled": {
         "value": false
       },
+      "parOnlineSubscriptionIds": {
+        "value": [
+          {
+            "subscriptionId": "3fdea49a-5396-4c74-b818-79b29be5d9d9",
+            "addressPrefix": "10.1.0.0/16",
+            "vnetName": "spoke1-vnet",
+            "parDNSServerIPArray": {
+              "value": []
+            }
+          }
+        ]
+      },
       "parTelemetryOptOut": {
           "value": false
       }
