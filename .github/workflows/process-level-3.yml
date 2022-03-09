@@ -101,7 +101,6 @@ jobs:
         run: |
             az deployment tenant what-if --template-file custom-modules/spokes/main.bicep `
             --parameters @platform/level-3/spokes.parameters.json `
-            --parameters parPlatformSubscriptionId=PlatformSubscriptionId `
             --location ${{ env.Location }} | Tee-Object -Variable spokesOutput
             if ($spokesOutput.length -gt 65536) {
               $spokesOutput = $spokesOutput.Substring(0,65000)
