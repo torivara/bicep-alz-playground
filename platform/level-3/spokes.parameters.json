@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+      "parPlatformSubscriptionId": {
+        "value": "cf824313-8235-4ab9-8c52-83518a61f62f"
+      },
+      "parResourceGroupNameForLogging": {
+          "value": "alz-hub-mgmt-rg"
+      },
+      "parResourceGroupNameForHubNetworking": {
+          "value": "alz-hub-networking-rg"
+      },
+      "parResourceGroupNameForSpokeNetworking": {
+          "value": "alz-spoke-networking-rg"
+      },
+      "parAzureFirewallEnabled": {
+        "value": false
+      },
+      "onlineSpokes": {
+        "value": [
+          {
+            "subscriptionId": "3fdea49a-5396-4c74-b818-79b29be5d9d9",
+            "type": "Online",
+            "addressPrefix": "10.1.0.0/16",
+            "vnetName": "spoke1-vnet",
+            "parDNSServerIPArray": {
+              "value": []
+            }
+          }
+        ]
+      },
+      "corpSpokes": {
+        "value": []
+      },
+      "parTelemetryOptOut": {
+          "value": false
+      }
+  }
+}

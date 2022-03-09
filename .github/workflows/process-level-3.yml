@@ -1,19 +1,29 @@
 name: Process level-3
 
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
       - "platform/level-3/**.json"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "platform/level-3/**.json" 
   workflow_dispatch: {}
 
 env:
-  ResourceGroupName: "rsg-github-pr-${{ github.event.number }}"
+  Location: 'westeurope'
+  ManagementGroupPrefix: 'alz'
+  LoggingResourceGroupName: 'alz-logging-rg'
+  NetworkingResourceGroupName: 'alz-networking-rg'
+  TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
 
 jobs:
   validate_bicep:
-    name: validate
+    name: 'Validate Bicep files'
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -21,16 +31,120 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          submodules: 'true'
+      
+      - name: BicepDemo - Validate Bicep Files
+        shell: pwsh
+        run: |
+          bicep build alz-source/infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/virtualNetworkPeer/virtualNetworkPeer.bicep
+      
+  check_mg:
+    name: 'Check if management group exist'
+    needs: validate_bicep
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    outputs:
+      MG_EXISTS: ${{ steps.check_mg.outputs.MG_EXISTS }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
       
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.ALZ_AZURE_SECRET_UNIT_TESTS }}
-          enable-AzPSSession: true
-
-      - name: Check for spokeNetworking Changes
-        id: git_spokenetworking_diff
-        shell: bash
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          allow-no-subscriptions: true
+      
+      - name: Check if top level management group exists
+        id: check_mg
+        shell: pwsh
         run: |
-          git_spoke=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep)
-          echo "gitSpokeOUTPUT=$git_spoke" >> $GITHUB_ENV
+          $checkPlatform = az account management-group list --query "[?name=='${{ env.ManagementGroupPrefix }}-platform']" | ConvertFrom-Json
+          $checkOnline = az account management-group list --query "[?name=='${{ env.ManagementGroupPrefix }}-landingzones-online']" | ConvertFrom-Json
+          $checkCorp = az account management-group list --query "[?name=='${{ env.ManagementGroupPrefix }}-landingzones-corp']" | ConvertFrom-Json
+          if ($checkPlatform -and $checkOnline -and $checkCorp){
+            Write-Output '::set-output name=MG_EXISTS::true'
+          } else {
+            Write-Output '::set-output name=MG_EXISTS::false'
+          }
+  validate_spokedeploy:
+    name: "Spoke deployment What-If"
+    needs: check_mg
+    if: ${{ github.event_name == 'pull_request' && needs.check_mg.outputs.MG_EXISTS == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
+          enable-AzPSSession: false
+
+      - name: Az CLI What-If Logging
+        id: create_spokes_whatif
+        shell: pwsh
+        run: |
+            az deployment tenant what-if --template-file custom-modules/spokes/main.bicep `
+            --parameters @platform/level-3/spokes.parameters.json `
+            --location ${{ env.Location }} | Tee-Object -Variable spokesOutput
+            if ($spokesOutput.length -gt 65536) {
+              $spokesOutput = $spokesOutput.Substring(0,65000)
+              $spokesOutput += "`nTruncated"
+            }
+            $spokesOutput | Out-File -FilePath /tmp/spokesOutput.md -Encoding UTF8 -Force
+      
+      - name: Post logging output to PR
+        shell: pwsh
+        if: ${{ github.event_name == 'pull_request' && steps.create_spokes_whatif.outcome == 'success' }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/spokesOutput.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  confirm_spokedeploy:
+    name: 'Confirm Spokes Deployment'
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: CONFIRM
+    steps:
+      - run: echo "Confirm Spokes Definitions deployment"
+
+  deploy_spokes:
+    name: "Spokes Deployment"
+    needs: confirm_spokedeploy
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
+          enable-AzPSSession: false
+
+      - name: Az CLI Create Logging
+        id: create_logging
+        shell: pwsh
+        run: |
+            az deployment tenant create --template-file custom-modules/spokes/main.bicep `
+              --parameters @platform/level-3/spokes.parameters.json `
+              --location ${{ env.Location }}
