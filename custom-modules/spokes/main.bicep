@@ -144,10 +144,10 @@ module modSpokePeeringFromHub '../../alz-source/infra-as-code/bicep/modules/virt
 // Subscription Placements Into Management Group Hierarchy
 // Module - Subscription Placement - Management
 module modSubscriptionPlacementPlatform '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = if(parPlatformSubscriptionId != '') {
-  scope: managementGroup(varManagementGroupIDs.platform)
-  name: 'sub-placement-platform-all-in-one'
+  scope: managementGroup(varManagementGroupIDs.platformManagement)
+  name: 'sub-placement-platform'
   params: {
-    parTargetManagementGroupId: parPlatformMGName
+    parTargetManagementGroupId: parPlatformManagementMGName
     parSubscriptionIds: [
       parPlatformSubscriptionId
     ]
