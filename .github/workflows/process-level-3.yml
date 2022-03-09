@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: CONFIRM
     steps:
-      - run: echo "Confirm Spokes Definitions deployment"
+      - run: echo "Confirm Spokes deployment"
 
   deploy_spokes:
     name: "Spokes Deployment"
