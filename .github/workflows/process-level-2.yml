@@ -87,7 +87,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
           enable-AzPSSession: false
 
       - name: Az CLI What-If Logging
@@ -136,7 +136,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_LOGGING }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
           enable-AzPSSession: false
 
       - name: Az CLI Create Logging
@@ -163,7 +163,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_NETWORK }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
           enable-AzPSSession: false
 
       - name: Az CLI What-If Hub Networking
@@ -204,7 +204,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_NETWORK }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
           enable-AzPSSession: false
           allow-no-subscriptions: true
 
