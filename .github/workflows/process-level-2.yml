@@ -94,6 +94,7 @@ jobs:
         id: create_logging_whatif
         shell: pwsh
         run: |
+            az group create --name ${{ env.LoggingResourceGroupName }} --location ${{ env.Location }}
             az deployment group what-if --resource-group ${{ env.LoggingResourceGroupName }} `
               --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
               --parameters @platform/level-2/logging/logging.parameters.json ` | Tee-Object -Variable policyOutput
@@ -169,6 +170,7 @@ jobs:
         id: create_hubnetworking_whatif
         shell: pwsh
         run: |
+            az group create --name ${{ env.NetworkingResourceGroupName }} --location ${{ env.Location }}
             az deployment group what-if --resource-group ${{ env.NetworkingResourceGroupName }} `
               --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json ` | Tee-Object -Variable networkOutput
