@@ -244,4 +244,7 @@ module modOnlineSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/sp
     parTags: parTags
     parTelemetryOptOut: parTelemetryOptOut
   }
+  dependsOn: [
+    modOnlineResourceGroupForSpokeNetworking[i]
+  ]
 }]
