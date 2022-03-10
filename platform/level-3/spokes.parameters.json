@@ -5,9 +5,6 @@
       "parPlatformSubscriptionId": {
         "value": "cf824313-8235-4ab9-8c52-83518a61f62f"
       },
-      "parResourceGroupNameForLogging": {
-          "value": "alz-hub-mgmt-rg"
-      },
       "parResourceGroupNameForHubNetworking": {
           "value": "alz-hub-networking-rg"
       },
@@ -17,11 +14,10 @@
       "parAzureFirewallEnabled": {
         "value": false
       },
-      "onlineSpokes": {
+      "parOnlineSubscriptionIds": {
         "value": [
           {
             "subscriptionId": "3fdea49a-5396-4c74-b818-79b29be5d9d9",
-            "type": "Online",
             "addressPrefix": "10.1.0.0/16",
             "vnetName": "spoke1-vnet",
             "parDNSServerIPArray": {
@@ -29,9 +25,6 @@
             }
           }
         ]
-      },
-      "corpSpokes": {
-        "value": []
       },
       "parTelemetryOptOut": {
           "value": false
