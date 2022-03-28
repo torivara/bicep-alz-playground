@@ -255,7 +255,7 @@ jobs:
             }
             $output | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
           }
-          if ( ${{ env.DeployAlzDefaultPolicies }} -eq 'true' ) {
+          if ( '${{ env.DeployAlzDefaultPolicies }}' -eq 'true' ) {
             az deployment mg what-if `
             --template-file  alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep `
             --parameters "@platform/level-2/alzDefaultPolicies/alzDefaultPolicyAssignments.parameters.json" `
@@ -279,7 +279,7 @@ jobs:
           foreach ($file in (Get-ChildItem /tmp/policy)) {
             gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
           }
-          if ( ${{ env.DeployAlzDefaultPolicies }} -eq $true ) {
+          if ( '${{ env.DeployAlzDefaultPolicies }}' -eq 'true' ) {
             gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policy/alzDefaultPolicies.md
           }
           
