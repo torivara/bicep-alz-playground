@@ -19,6 +19,7 @@ env:
   LoggingResourceGroupName: 'alz-logging-rg'
   NetworkingResourceGroupName: 'alz-networking-rg'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
+  DeployAlzDefaultPolicies: true
 
 jobs:
   validate_bicep:
@@ -253,6 +254,21 @@ jobs:
             }
             $output | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
           }
+          if ( ${{ env.DeployAlzDefaultPolicies }} -eq $true ) {
+            az deployment mg what-if `
+            --template-file  alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep `
+            --parameters "@platform/level-2/alzDefaultPolicies/alzDefaultPolicyAssignments.parameters.json" `
+            --location ${{ env.Location }} `
+            --management-group-id ${{ env.ManagementGroupPrefix }} `
+            --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
+            --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} | Tee-Object -Variable alzDefaultPolicies
+            $output = $alzDefaultPolicies
+            if ($output.length -gt 65536) {
+              $output = $var.Value.Substring(0,65000)
+              $output += "`nTruncated"
+            }
+            $output | Out-File -FilePath "/tmp/policy/alzDefaultPolicies.md" -Encoding UTF8 -Force
+          }
       
       - name: Post policy assignments output to PR
         shell: pwsh
@@ -260,6 +276,9 @@ jobs:
         run: |
           foreach ($file in (Get-ChildItem /tmp/policy)) {
             gh pr comment ${{ github.event.pull_request.number }} --body-file ($file.FullName)
+          }
+          if ( ${{ env.DeployAlzDefaultPolicies }} -eq $true ) {
+            gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/policy/alzDefaultPolicies.md
           }
           
         env:
@@ -351,6 +370,15 @@ jobs:
             --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
             --location ${{ env.Location }} `
             --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones"
+          }
+          if ( ${{ env.DeployAlzDefaultPolicies }} -eq $true ) {
+            az deployment mg create `
+            --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep `
+            --parameters "@platform/level-2/alzDefaultPolicies/alzDefaultPolicyAssignments.parameters.json" `
+            --location ${{ env.Location }} `
+            --management-group-id ${{ env.ManagementGroupPrefix }} `
+            --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
+            --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }}
           }
   deploy_roleassignments:
     name: "Role Assignments Deployment"
