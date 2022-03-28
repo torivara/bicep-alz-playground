@@ -99,7 +99,8 @@ jobs:
             az group create --name ${{ env.LoggingResourceGroupName }} --location ${{ env.Location }}
             az deployment group what-if --resource-group ${{ env.LoggingResourceGroupName }} `
               --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
-              --parameters @platform/level-2/logging/logging.parameters.json ` | Tee-Object -Variable policyOutput
+              --parameters @platform/level-2/logging/logging.parameters.json `
+              --parameters parLogAnalyticsWorkspaceName=${{ env.LogAnalyticsWorkspaceName }} | Tee-Object -Variable policyOutput
             if ($policyOutput.length -gt 65536) {
               $policyOutput = $policyOutput.Substring(0,65000)
               $policyOutput += "`nTruncated"
@@ -127,7 +128,8 @@ jobs:
     needs: confirm_net_log
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-
+    outputs:
+      LA_WORKSPACEID: ${{ steps.create_logging.outputs.LA_WORKSPACEID }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -145,9 +147,11 @@ jobs:
         id: create_logging
         shell: pwsh
         run: |
-            az deployment group create --resource-group ${{ env.LoggingResourceGroupName }} `
+            $output = az deployment group create --resource-group ${{ env.LoggingResourceGroupName }} `
               --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
               --parameters @platform/level-2/logging/logging.parameters.json `
+              --parameters parLogAnalyticsWorkspaceName=${{ env.LogAnalyticsWorkspaceName }}
+            Write-Output '::set-output name=LA_WORKSPACEID::$($output.outputs.outLogAnalyticsWorkspaceId.value)'
 
   validate_hubNetworking:
     name: "HubNetworking What-If"
@@ -263,6 +267,7 @@ jobs:
             --management-group-id ${{ env.ManagementGroupPrefix }} `
             --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
             --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
+            --parameters parLogAnalyticsWorkspaceResourceID=${{ jobs.deploy_logging.outputs.LA_WORKSPACEID }} `
             --exclude-change-types Ignore NoChange | Tee-Object -Variable alzDefaultPolicies
             $output = $alzDefaultPolicies
             if ($output.length -gt 65536) {
@@ -380,7 +385,8 @@ jobs:
             --location ${{ env.Location }} `
             --management-group-id ${{ env.ManagementGroupPrefix }} `
             --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
-            --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }}
+            --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
+            --parameters parLogAnalyticsWorkspaceResourceID=${{ jobs.deploy_logging.outputs.LA_WORKSPACEID }} 
           }
   deploy_roleassignments:
     name: "Role Assignments Deployment"
