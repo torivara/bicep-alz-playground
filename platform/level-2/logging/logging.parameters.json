@@ -5,7 +5,7 @@
     "parLogAnalyticsWorkspaceName": {
       "value": "alz-logging-ws"
     },
-    "parLogAnalyticsWorkspaceRegion": {
+    "parLogAnalyticsWorkspaceLocation": {
       "value": "westeurope"
     },
     "parLogAnalyticsWorkspaceLogRetentionInDays": {
@@ -28,7 +28,7 @@
     "parAutomationAccountName": {
       "value": "alz-logging-aa"
     },
-    "parAutomationAccountRegion": {
+    "parAutomationAccountLocation": {
       "value": "westeurope"
     },
     "parTelemetryOptOut": {
