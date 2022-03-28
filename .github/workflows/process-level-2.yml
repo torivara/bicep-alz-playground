@@ -20,6 +20,8 @@ env:
   NetworkingResourceGroupName: 'alz-networking-rg'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
   DeployAlzDefaultPolicies: 'true'
+  LogAnalyticsWorkspaceName: 'alz-logging-ws'
+  AutomationAccountName: 'alz-automation-aa'
 
 jobs:
   validate_bicep:
@@ -100,7 +102,8 @@ jobs:
             az deployment group what-if --resource-group ${{ env.LoggingResourceGroupName }} `
               --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
               --parameters @platform/level-2/logging/logging.parameters.json `
-              --parameters parLogAnalyticsWorkspaceName=${{ env.LogAnalyticsWorkspaceName }} | Tee-Object -Variable policyOutput
+              --parameters parLogAnalyticsWorkspaceName=${{ env.LogAnalyticsWorkspaceName }} `
+              --parameters parAutomationAccountName=${{ env.AutomationAccountName }} | Tee-Object -Variable policyOutput
             if ($policyOutput.length -gt 65536) {
               $policyOutput = $policyOutput.Substring(0,65000)
               $policyOutput += "`nTruncated"
@@ -148,12 +151,11 @@ jobs:
         id: create_logging
         shell: pwsh
         run: |
-            $output = az deployment group create --resource-group ${{ env.LoggingResourceGroupName }} `
+            az deployment group create --resource-group ${{ env.LoggingResourceGroupName }} `
               --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
               --parameters @platform/level-2/logging/logging.parameters.json `
-              --parameters parLogAnalyticsWorkspaceName=${{ env.LogAnalyticsWorkspaceName }}
-            Write-Output '::set-output name=LA_WORKSPACEID::$($output.outputs.outLogAnalyticsWorkspaceId.value)'
-            Write-Output '::set-output name=AA_NAME::$($output.outputs.outAutomationAccountName.value)'
+              --parameters parLogAnalyticsWorkspaceName=${{ env.LogAnalyticsWorkspaceName }} `
+              --parameters parAutomationAccountName=${{ env.AutomationAccountName }}
 
   validate_hubNetworking:
     name: "HubNetworking What-If"
@@ -249,6 +251,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path /tmp/ -Name policy -ItemType Directory -Force
+          $logAnalyticsWorkspaceId = '/subscriptions/${{ secrets.AZURE_HUB_SUBSCRIPTION_ID }}/resourceGroups/${{ env.LoggingResourceGroupName }}/providers/Microsoft.OperationalInsights/workspaces/${{ env.LogAnalyticsWorkspaceName }}'
           foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
             az deployment mg what-if --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
             --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
@@ -269,8 +272,8 @@ jobs:
             --management-group-id ${{ env.ManagementGroupPrefix }} `
             --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
             --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
-            --parameters parLogAnalyticsWorkspaceResourceID=${{ needs.deploy_logging.outputs.LA_WORKSPACEID }} `
-            --parameters parAutomationAccountName=${{ needs.deploy_logging.outputs.AA_NAME }} `
+            --parameters parLogAnalyticsWorkspaceResourceID=$logAnalyticsWorkspaceId `
+            --parameters parAutomationAccountName=${{ env.AutomationAccountName }} `
             --exclude-change-types Ignore NoChange | Tee-Object -Variable alzDefaultPolicies
             $output = $alzDefaultPolicies
             if ($output.length -gt 65536) {
@@ -375,6 +378,7 @@ jobs:
         id: create_policyassignments
         shell: pwsh
         run: |
+          $logAnalyticsWorkspaceId = '/subscriptions/${{ secrets.AZURE_HUB_SUBSCRIPTION_ID }}/resourceGroups/${{ env.LoggingResourceGroupName }}/providers/Microsoft.OperationalInsights/workspaces/${{ env.LogAnalyticsWorkspaceName }}'
           foreach ($file in (Get-ChildItem -path platform/level-2/policyAssignments -Recurse -Include '*.json')) {
             az deployment mg create --template-file alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep `
             --parameters "@platform/level-2/policyAssignments/$($file.Name)" `
@@ -389,8 +393,8 @@ jobs:
             --management-group-id ${{ env.ManagementGroupPrefix }} `
             --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
             --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
-            --parameters parLogAnalyticsWorkspaceResourceID=${{ needs.deploy_logging.outputs.LA_WORKSPACEID }} `
-            --parameters parAutomationAccountName=${{ needs.deploy_logging.outputs.AA_NAME }}
+            --parameters parLogAnalyticsWorkspaceResourceID=$logAnalyticsWorkspaceId `
+            --parameters parAutomationAccountName=${{ env.AutomationAccountName }}
           }
   deploy_roleassignments:
     name: "Role Assignments Deployment"
