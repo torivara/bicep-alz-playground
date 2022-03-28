@@ -269,8 +269,8 @@ jobs:
             --management-group-id ${{ env.ManagementGroupPrefix }} `
             --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
             --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
-            --parameters parLogAnalyticsWorkspaceResourceID=${{ jobs.deploy_logging.outputs.LA_WORKSPACEID }} `
-            --parameters parAutomationAccountName=${{ jobs.deploy_logging.outputs.AA_NAME }} `
+            --parameters parLogAnalyticsWorkspaceResourceID=${{ needs.jobs.deploy_logging.outputs.LA_WORKSPACEID }} `
+            --parameters parAutomationAccountName=${{ needs.jobs.deploy_logging.outputs.AA_NAME }} `
             --exclude-change-types Ignore NoChange | Tee-Object -Variable alzDefaultPolicies
             $output = $alzDefaultPolicies
             if ($output.length -gt 65536) {
@@ -389,8 +389,8 @@ jobs:
             --management-group-id ${{ env.ManagementGroupPrefix }} `
             --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
             --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
-            --parameters parLogAnalyticsWorkspaceResourceID=${{ jobs.deploy_logging.outputs.LA_WORKSPACEID }} `
-            --parameters parAutomationAccountName=${{ jobs.deploy_logging.outputs.AA_NAME }}
+            --parameters parLogAnalyticsWorkspaceResourceID=${{ needs.jobs.deploy_logging.outputs.LA_WORKSPACEID }} `
+            --parameters parAutomationAccountName=${{ needs.jobs.deploy_logging.outputs.AA_NAME }}
           }
   deploy_roleassignments:
     name: "Role Assignments Deployment"
