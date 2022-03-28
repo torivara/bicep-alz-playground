@@ -263,7 +263,7 @@ jobs:
             --management-group-id ${{ env.ManagementGroupPrefix }} `
             --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
             --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
-            --exclude-change-types Ignore, NoChange | Tee-Object -Variable alzDefaultPolicies
+            --exclude-change-types Ignore NoChange | Tee-Object -Variable alzDefaultPolicies
             $output = $alzDefaultPolicies
             if ($output.length -gt 65536) {
               $output = $var.Value.Substring(0,65000)
