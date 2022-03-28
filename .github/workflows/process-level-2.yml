@@ -19,7 +19,7 @@ env:
   LoggingResourceGroupName: 'alz-logging-rg'
   NetworkingResourceGroupName: 'alz-networking-rg'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
-  DeployAlzDefaultPolicies: true
+  DeployAlzDefaultPolicies: 'true'
 
 jobs:
   validate_bicep:
