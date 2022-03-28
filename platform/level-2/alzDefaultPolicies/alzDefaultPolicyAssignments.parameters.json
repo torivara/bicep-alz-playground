@@ -18,10 +18,7 @@
             "value": "alz-automation-account"
         },
         "parMSDFCEmailSecurityContact": {
-            "value": "security_contact@replace_me.com"
-        },
-        "parDdosProtectionPlanId": {
-            "value": "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/Hub_Networking_POC/providers/Microsoft.Network/ddosProtectionPlans/alz-Ddos-Plan"
+            "value": "torivara@gmail.com"
         },
         "parTelemetryOptOut": {
             "value": false
