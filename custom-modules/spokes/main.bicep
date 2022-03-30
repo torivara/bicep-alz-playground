@@ -88,7 +88,7 @@ module modResourceGroupForSpokeNetworking '../../alz-source/infra-as-code/bicep/
   scope: subscription(corpSub.subID)
   name: 'corpspoke-${i}'
   params: {
-    parResourceGroupLocation: parLocation
+    parLocation: parLocation
     parResourceGroupName: parResourceGroupNameForSpokeNetworking
     parTelemetryOptOut: parTelemetryOptOut
   }
@@ -99,7 +99,7 @@ module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNet
   scope: resourceGroup(corpSub.subID, parResourceGroupNameForSpokeNetworking)
   name: 'corpspokenetworking-${i}'
   params: {
-    parRegion: parLocation
+    parLocation: parLocation
     parSpokeNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subID)}', 64)}'
     parSpokeNetworkAddressPrefix: corpSub.vnetCIDR
     parDdosProtectionPlanId: parDDoSPlanResourceID
@@ -224,7 +224,7 @@ module modOnlineResourceGroupForSpokeNetworking '../../alz-source/infra-as-code/
   scope: subscription(onlineSub.subscriptionId)
   name: 'onlinespoke-rgfornetworking-${i}'
   params: {
-    parResourceGroupLocation: parLocation
+    parLocation: parLocation
     parResourceGroupName: parResourceGroupNameForSpokeNetworking
     parTelemetryOptOut: parTelemetryOptOut
   }
@@ -235,7 +235,7 @@ module modOnlineSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/sp
   scope: resourceGroup(onlineSub.subscriptionId, parResourceGroupNameForSpokeNetworking)
   name: 'onlinespokenetworking-${i}'
   params: {
-    parRegion: parLocation
+    parLocation: parLocation
     parSpokeNetworkName: onlineSub.vnetName
     parSpokeNetworkAddressPrefix: onlineSub.addressPrefix
     parDdosProtectionPlanId: parDDoSPlanResourceID
