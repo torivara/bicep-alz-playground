@@ -52,6 +52,13 @@ Push triggered actions will run deployment of resources declared in bicep files.
       - Resources to be deployed in hub
       - Resources to be deployed in online spoke
       - Resources to be deployed in corp spoke
+  - custom-modules - Contains modules that needs to be updated manually from ALZ-Bicep or just additional modules that can be used.
+    - desktopservices - experimental module for adding AVD to one of the spokes
+    - hubNetworking - Needed a change for it to be deployable in this scenario
+    - logging - Needed a change for it to be deployable in this scenario
+    - virtualNetworkPeer - Needed a change for it to be deployable in this scenario
+    - spokes - Custom module for creating spokes based on the main orchestration bicep from ALZ-Bicep
+  - scripts - Miscellaneous scripts or script notes that may or may not be needed for deployment
 
 ## Prerequisites
 
