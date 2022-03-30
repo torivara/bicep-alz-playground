@@ -100,7 +100,7 @@ module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNet
   name: 'corpspokenetworking-${i}'
   params: {
     parLocation: parLocation
-    parSpokeNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
+    parSpokeNetworkName: corpSub.vnetName
     parSpokeNetworkAddressPrefix: corpSub.vnetCIDR
     parDdosProtectionPlanId: parDDoSPlanResourceID
     parDNSServerIPArray: parDNSServerIPArray
@@ -119,7 +119,7 @@ module modSpokePeeringToHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' = [
     parLocation: parLocation
     parDestinationVirtualNetworkID: parHubVirtualNetworkID
     parDestinationVirtualNetworkName: last(split(parHubVirtualNetworkID, '/'))
-    parSourceVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
+    parSourceVirtualNetworkName: corpSub.vnetName
     parAllowForwardedTraffic: true
     parAllowGatewayTransit: true
     parAllowVirtualNetworkAccess: true
@@ -129,12 +129,12 @@ module modSpokePeeringToHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' = [
 
 // Module - Corp Spoke Virtual Network Peering - Hub To Spoke
 module modSpokePeeringFromHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
-  scope: resourceGroup(parConnectivitySubscriptionId, parResourceGroupNameForHubNetworking)
+  scope: parPlatformSubscriptionId != '' ? resourceGroup(parPlatformSubscriptionId, parResourceGroupNameForHubNetworking) : resourceGroup(parConnectivitySubscriptionId, parResourceGroupNameForHubNetworking)
   name: 'corpspokepeerfromhub-${i}'
   params: {
     parLocation: parLocation
-    parDestinationVirtualNetworkID: '/subscriptions/${corpSub.subscriptionId}/resourceGroups/${parResourceGroupNameForSpokeNetworking}/providers/Microsoft.Network/virtualNetworks/${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
-    parDestinationVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
+    parDestinationVirtualNetworkID: '/subscriptions/${corpSub.subscriptionId}/resourceGroups/${parResourceGroupNameForSpokeNetworking}/providers/Microsoft.Network/virtualNetworks/${corpSub.vnetName}'
+    parDestinationVirtualNetworkName: corpSub.vnetName
     parSourceVirtualNetworkName: last(split(parHubVirtualNetworkID, '/'))
     parAllowForwardedTraffic: true
     parAllowGatewayTransit: true
@@ -196,17 +196,17 @@ module modSubscriptionPlacementIdentity '../../alz-source/infra-as-code/bicep/mo
 }
 
 // Module - Subscription Placement - Corp
-module modSubscriptionPlacementCorp '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = if (!empty(parCorpSubscriptionIds)) {
+module modSubscriptionPlacementCorp '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
   scope: managementGroup(varManagementGroupIDs.landingZonesCorp)
-  name: 'sub-placement-lz-corp'
+  name: 'sub-placement-lz-corp-${i}'
   params: {
     parTargetManagementGroupId: parLandingZonesCorpMGName
     parSubscriptionIds: [
-      parCorpSubscriptionIds
+      corpSub.subscriptionId
     ]
     parTelemetryOptOut: parTelemetryOptOut
   }
-}
+}]
 
 // Module - Subscription Placement - Online
 module modSubscriptionPlacementOnline '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = [for (onlineSub, i) in parOnlineSubscriptionIds: if (!empty(parOnlineSubscriptionIds)) {
