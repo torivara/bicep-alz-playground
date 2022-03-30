@@ -107,6 +107,7 @@ jobs:
         id: create_spokes_whatif
         shell: pwsh
         run: |
+            az bicep upgrade
             $vnetId = (az network vnet show -n ${{ env.HubNetworkName }} -g ${{ env.NetworkingResourceGroupName }} --query 'id' -o tsv)
             az deployment tenant what-if --template-file custom-modules/spokes/main.bicep `
             --parameters @platform/level-3/spokes.parameters.json `
@@ -160,6 +161,7 @@ jobs:
         id: create_spokedeploy
         shell: pwsh
         run: |
+            az bicep upgrade
             $vnetId = (az network vnet show -n ${{ env.HubNetworkName }} -g ${{ env.NetworkingResourceGroupName }} --query 'id' -o tsv)
             az deployment tenant create --template-file custom-modules/spokes/main.bicep `
               --parameters @platform/level-3/spokes.parameters.json `
