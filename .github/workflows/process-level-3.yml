@@ -42,6 +42,7 @@ jobs:
           bicep build alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep
           bicep build alz-source/infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
           bicep build alz-source/infra-as-code/bicep/modules/virtualNetworkPeer/virtualNetworkPeer.bicep
+          bicep build custom-modules/spokes/main.bicep
       
   check_mg:
     name: 'Check if management group exist'
