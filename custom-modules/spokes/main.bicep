@@ -85,7 +85,7 @@ var varManagementGroupIDs = {
 
 // Resource - Resource Group - For Spoke Networking - https://github.com/Azure/bicep/issues/5151
 module modResourceGroupForSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
-  scope: subscription(corpSub.subID)
+  scope: subscription(corpSub.subscriptionId)
   name: 'corpspoke-${i}'
   params: {
     parLocation: parLocation
@@ -96,11 +96,11 @@ module modResourceGroupForSpokeNetworking '../../alz-source/infra-as-code/bicep/
 
 // Module - Corp Spoke Virtual Networks
 module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
-  scope: resourceGroup(corpSub.subID, parResourceGroupNameForSpokeNetworking)
+  scope: resourceGroup(corpSub.subscriptionId, parResourceGroupNameForSpokeNetworking)
   name: 'corpspokenetworking-${i}'
   params: {
     parLocation: parLocation
-    parSpokeNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subID)}', 64)}'
+    parSpokeNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
     parSpokeNetworkAddressPrefix: corpSub.vnetCIDR
     parDdosProtectionPlanId: parDDoSPlanResourceID
     parDNSServerIPArray: parDNSServerIPArray
@@ -113,12 +113,12 @@ module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNet
 
 // Module - Corp Spoke Virtual Network Peering - Spoke To Hub
 module modSpokePeeringToHub '../../alz-source/infra-as-code/bicep/modules/virtualNetworkPeer/virtualNetworkPeer.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
-  scope: resourceGroup(corpSub.subID, parResourceGroupNameForSpokeNetworking)
+  scope: resourceGroup(corpSub.subscriptionId, parResourceGroupNameForSpokeNetworking)
   name: 'corpspokepeertohub-${i}'
   params: {
     parDestinationVirtualNetworkID: parHubVirtualNetworkID
     parDestinationVirtualNetworkName: last(split(parHubVirtualNetworkID, '/'))
-    parSourceVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subID)}', 64)}'
+    parSourceVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
     parAllowForwardedTraffic: true
     parAllowGatewayTransit: true
     parAllowVirtualNetworkAccess: true
@@ -131,8 +131,8 @@ module modSpokePeeringFromHub '../../alz-source/infra-as-code/bicep/modules/virt
   scope: resourceGroup(parConnectivitySubscriptionId, parResourceGroupNameForHubNetworking)
   name: 'corpspokepeerfromhub-${i}'
   params: {
-    parDestinationVirtualNetworkID: '/subscriptions/${corpSub.subID}/resourceGroups/${parResourceGroupNameForSpokeNetworking}/providers/Microsoft.Network/virtualNetworks/${take('vnet-spoke-corp-${uniqueString(corpSub.subID)}', 64)}'
-    parDestinationVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subID)}', 64)}'
+    parDestinationVirtualNetworkID: '/subscriptions/${corpSub.subscriptionId}/resourceGroups/${parResourceGroupNameForSpokeNetworking}/providers/Microsoft.Network/virtualNetworks/${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
+    parDestinationVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
     parSourceVirtualNetworkName: last(split(parHubVirtualNetworkID, '/'))
     parAllowForwardedTraffic: true
     parAllowGatewayTransit: true
