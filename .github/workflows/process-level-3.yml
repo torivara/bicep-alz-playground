@@ -100,8 +100,12 @@ jobs:
         id: create_spokes_whatif
         shell: pwsh
         run: |
+            $vnetId = (az network vnet show -n ${{ env.HubNetworkName }} -g ${{ env.NetworkingResourceGroupName }} --query 'id' -o tsv)
             az deployment tenant what-if --template-file custom-modules/spokes/main.bicep `
             --parameters @platform/level-3/spokes.parameters.json `
+            --parameters parHubVirtualNetworkID=$vnetId `
+            --parameters parResourceGroupNameForHubNetworking=${{ env.NetworkingResourceGroupName }} `
+            --parameters parPlatformSubscriptionId=${{ env.PlatformSubscriptionId }} `
             --location ${{ env.Location }} | Tee-Object -Variable spokesOutput
             if ($spokesOutput.length -gt 65536) {
               $spokesOutput = $spokesOutput.Substring(0,65000)
