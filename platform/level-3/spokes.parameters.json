@@ -28,6 +28,17 @@
       },
       "parTelemetryOptOut": {
           "value": false
+      },
+      "parCorpSubscriptionIds": {
+        "value":
+        {
+          "subscriptionId": "79e35193-361d-434b-8614-4fe1dac83fb9",
+          "addressPrefix": "10.2.0.0/16",
+          "vnetName": "spoke2-vnet",
+          "parDNSServerIPArray": {
+            "value": []
+          }
+        }
       }
   }
 }
