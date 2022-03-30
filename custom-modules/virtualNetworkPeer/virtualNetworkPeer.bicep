@@ -44,7 +44,6 @@ var varCuaid = 'ab8e3b12-b0fa-40aa-8630-e3f7699e2142'
 
 resource resVirtualNetworkPeer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-11-01' = {
   name: '${parSourceVirtualNetworkName}/peer-to-${parDestinationVirtualNetworkName}'
-  location: parLocation
   properties: {
     allowVirtualNetworkAccess: parAllowVirtualNetworkAccess
     allowForwardedTraffic: parAllowForwardedTraffic
@@ -59,6 +58,6 @@ resource resVirtualNetworkPeer 'Microsoft.Network/virtualNetworks/virtualNetwork
 // Optional Deployment for Customer Usage Attribution
 module modCustomerUsageAttribution '../../alz-source/infra-as-code/bicep/CRML/customerUsageAttribution/cuaIdResourceGroup.bicep' = if (!parTelemetryOptOut) {
   #disable-next-line no-loc-expr-outside-params //Only to ensure telemetry data is stored in same location as deployment. See https://github.com/Azure/ALZ-Bicep/wiki/FAQ#why-are-some-linter-rules-disabled-via-the-disable-next-line-bicep-function for more information
-  name: 'pid-${varCuaid}-${uniqueString(resourceGroup().location)}'
+  name: 'pid-${varCuaid}-${uniqueString(parLocation)}'
   params: {}
 }
