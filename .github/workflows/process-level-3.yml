@@ -18,6 +18,7 @@ env:
   ManagementGroupPrefix: 'alz'
   LoggingResourceGroupName: 'alz-logging-rg'
   NetworkingResourceGroupName: 'alz-networking-rg'
+  HubNetworkName: 'alz-hub-WE-vnet'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
   PlatformSubscriptionId: ${{ secrets.AZURE_HUB_SUBSCRIPTION_ID }}
 
@@ -148,6 +149,10 @@ jobs:
         id: create_spokedeploy
         shell: pwsh
         run: |
+            $vnetId = (az network vnet show -n ${{ env.HubNetworkName }} -g ${{ env.NetworkingResourceGroupName }} --query 'id' -o tsv)
             az deployment tenant create --template-file custom-modules/spokes/main.bicep `
               --parameters @platform/level-3/spokes.parameters.json `
+              --parameters parHubVirtualNetworkID=$vnetId `
+              --parameters parResourceGroupNameForHubNetworking=${{ env.NetworkingResourceGroupName }} `
+              --parameters parPlatformSubscriptionId=${{ env.PlatformSubscriptionId }} `
               --location ${{ env.Location }}
