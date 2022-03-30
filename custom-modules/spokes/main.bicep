@@ -100,7 +100,7 @@ module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNet
   name: 'corpspokenetworking-${i}'
   params: {
     parLocation: parLocation
-    parSpokeNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
+    parSpokeNetworkName: corpSub.vnetName
     parSpokeNetworkAddressPrefix: corpSub.vnetCIDR
     parDdosProtectionPlanId: parDDoSPlanResourceID
     parDNSServerIPArray: parDNSServerIPArray
@@ -118,7 +118,7 @@ module modSpokePeeringToHub '../../alz-source/infra-as-code/bicep/modules/virtua
   params: {
     parDestinationVirtualNetworkID: parHubVirtualNetworkID
     parDestinationVirtualNetworkName: last(split(parHubVirtualNetworkID, '/'))
-    parSourceVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
+    parSourceVirtualNetworkName: corpSub.vnetName
     parAllowForwardedTraffic: true
     parAllowGatewayTransit: true
     parAllowVirtualNetworkAccess: true
@@ -131,8 +131,8 @@ module modSpokePeeringFromHub '../../alz-source/infra-as-code/bicep/modules/virt
   scope: parPlatformSubscriptionId != '' ? resourceGroup(parPlatformSubscriptionId, parResourceGroupNameForHubNetworking) : resourceGroup(parConnectivitySubscriptionId, parResourceGroupNameForHubNetworking)
   name: 'corpspokepeerfromhub-${i}'
   params: {
-    parDestinationVirtualNetworkID: '/subscriptions/${corpSub.subscriptionId}/resourceGroups/${parResourceGroupNameForSpokeNetworking}/providers/Microsoft.Network/virtualNetworks/${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
-    parDestinationVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
+    parDestinationVirtualNetworkID: '/subscriptions/${corpSub.subscriptionId}/resourceGroups/${parResourceGroupNameForSpokeNetworking}/providers/Microsoft.Network/virtualNetworks/${corpSub.vnetName}'
+    parDestinationVirtualNetworkName: corpSub.vnetName
     parSourceVirtualNetworkName: last(split(parHubVirtualNetworkID, '/'))
     parAllowForwardedTraffic: true
     parAllowGatewayTransit: true
