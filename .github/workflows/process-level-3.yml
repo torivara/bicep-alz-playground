@@ -90,6 +90,12 @@ jobs:
           fetch-depth: 0
           submodules: 'true'
       
+      - name: Setup Bicep
+        uses: anthony-c-martin/setup-bicep@v0.1
+        with:
+          # must be a version listed under https://github.com/Azure/bicep/releases
+          version: v0.4.1318
+
       - name: Azure Login
         uses: azure/login@v1
         with:
