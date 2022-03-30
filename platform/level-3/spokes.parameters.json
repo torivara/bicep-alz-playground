@@ -6,7 +6,7 @@
       "value": "cf824313-8235-4ab9-8c52-83518a61f62f"
     },
     "parResourceGroupNameForHubNetworking": {
-      "value": "alz-hub-networking-rg"
+      "value": "alz-networking-rg"
     },
     "parResourceGroupNameForSpokeNetworking": {
       "value": "alz-spoke-networking-rg"
@@ -19,7 +19,7 @@
         {
           "subscriptionId": "3fdea49a-5396-4c74-b818-79b29be5d9d9",
           "addressPrefix": "10.1.0.0/16",
-          "vnetName": "spoke1-vnet",
+          "vnetName": "onlinespoke-vnet",
           "parDNSServerIPArray": {
             "value": []
           }
@@ -34,7 +34,7 @@
         {
           "subscriptionId": "79e35193-361d-434b-8614-4fe1dac83fb9",
           "addressPrefix": "10.2.0.0/16",
-          "vnetName": "spoke2-vnet",
+          "vnetName": "corpspoke-vnet",
           "parDNSServerIPArray": {
             "value": []
           }
