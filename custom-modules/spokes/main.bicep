@@ -101,7 +101,7 @@ module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNet
   params: {
     parLocation: parLocation
     parSpokeNetworkName: corpSub.vnetName
-    parSpokeNetworkAddressPrefix: corpSub.vnetCIDR
+    parSpokeNetworkAddressPrefix: corpSub.addressPrefix
     parDdosProtectionPlanId: parDDoSPlanResourceID
     parDNSServerIPArray: parDNSServerIPArray
     parNextHopIPAddress: parAzureFirewallEnabled ? parAzureFirewallPrivateIP : ''
