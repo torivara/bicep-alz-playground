@@ -196,17 +196,17 @@ module modSubscriptionPlacementIdentity '../../alz-source/infra-as-code/bicep/mo
 }
 
 // Module - Subscription Placement - Corp
-module modSubscriptionPlacementCorp '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = if (!empty(parCorpSubscriptionIds)) {
+module modSubscriptionPlacementCorp '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
   scope: managementGroup(varManagementGroupIDs.landingZonesCorp)
-  name: 'sub-placement-lz-corp'
+  name: 'sub-placement-lz-corp-${i}'
   params: {
     parTargetManagementGroupId: parLandingZonesCorpMGName
     parSubscriptionIds: [
-      parCorpSubscriptionIds
+      corpSub.subscriptionId
     ]
     parTelemetryOptOut: parTelemetryOptOut
   }
-}
+}]
 
 // Module - Subscription Placement - Online
 module modSubscriptionPlacementOnline '../../alz-source/infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep' = [for (onlineSub, i) in parOnlineSubscriptionIds: if (!empty(parOnlineSubscriptionIds)) {
