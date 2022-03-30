@@ -112,10 +112,11 @@ module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNet
 }]
 
 // Module - Corp Spoke Virtual Network Peering - Spoke To Hub
-module modSpokePeeringToHub '../../alz-source/infra-as-code/bicep/modules/virtualNetworkPeer/virtualNetworkPeer.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
+module modSpokePeeringToHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
   scope: resourceGroup(corpSub.subscriptionId, parResourceGroupNameForSpokeNetworking)
   name: 'corpspokepeertohub-${i}'
   params: {
+    parLocation: parLocation
     parDestinationVirtualNetworkID: parHubVirtualNetworkID
     parDestinationVirtualNetworkName: last(split(parHubVirtualNetworkID, '/'))
     parSourceVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
@@ -127,10 +128,11 @@ module modSpokePeeringToHub '../../alz-source/infra-as-code/bicep/modules/virtua
 }]
 
 // Module - Corp Spoke Virtual Network Peering - Hub To Spoke
-module modSpokePeeringFromHub '../../alz-source/infra-as-code/bicep/modules/virtualNetworkPeer/virtualNetworkPeer.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
+module modSpokePeeringFromHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
   scope: resourceGroup(parConnectivitySubscriptionId, parResourceGroupNameForHubNetworking)
   name: 'corpspokepeerfromhub-${i}'
   params: {
+    parLocation: parLocation
     parDestinationVirtualNetworkID: '/subscriptions/${corpSub.subscriptionId}/resourceGroups/${parResourceGroupNameForSpokeNetworking}/providers/Microsoft.Network/virtualNetworks/${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
     parDestinationVirtualNetworkName: '${take('vnet-spoke-corp-${uniqueString(corpSub.subscriptionId)}', 64)}'
     parSourceVirtualNetworkName: last(split(parHubVirtualNetworkID, '/'))
