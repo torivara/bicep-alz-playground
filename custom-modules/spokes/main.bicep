@@ -109,6 +109,9 @@ module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNet
     parTags: parTags
     parTelemetryOptOut: parTelemetryOptOut
   }
+  dependsOn: [
+    modResourceGroupForSpokeNetworking
+  ]
 }]
 
 // Module - Corp Spoke Virtual Network Peering - Spoke To Hub
@@ -125,6 +128,9 @@ module modSpokePeeringToHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' = [
     parAllowVirtualNetworkAccess: true
     parTelemetryOptOut: parTelemetryOptOut
   }
+  dependsOn: [
+    modSpokeNetworking
+  ]
 }]
 
 // Module - Corp Spoke Virtual Network Peering - Hub To Spoke
@@ -141,6 +147,9 @@ module modSpokePeeringFromHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' =
     parAllowVirtualNetworkAccess: true
     parTelemetryOptOut: parTelemetryOptOut
   }
+  dependsOn: [
+    modSpokeNetworking
+  ]
 }]
 
 // Subscription Placements Into Management Group Hierarchy
