@@ -135,7 +135,7 @@ module modSpokePeeringToHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' = [
 
 // Module - Corp Spoke Virtual Network Peering - Hub To Spoke
 module modSpokePeeringFromHub '../virtualNetworkPeer/virtualNetworkPeer.bicep' = [for (corpSub, i) in parCorpSubscriptionIds: if (!empty(parCorpSubscriptionIds)) {
-  scope: parPlatformSubscriptionId != '' ? resourceGroup(parPlatformSubscriptionId, parResourceGroupNameForHubNetworking) : resourceGroup(parConnectivitySubscriptionId, parResourceGroupNameForHubNetworking)
+  scope: resourceGroup((parPlatformSubscriptionId != '' ? parPlatformSubscriptionId : parConnectivitySubscriptionId), parResourceGroupNameForHubNetworking)
   name: 'corpspokepeerfromhub-${i}'
   params: {
     parLocation: parLocation
