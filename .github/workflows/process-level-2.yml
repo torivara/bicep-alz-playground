@@ -16,12 +16,12 @@ on:
 env:
   Location: 'westeurope'
   ManagementGroupPrefix: 'alz'
-  LoggingResourceGroupName: 'alz-WE-logging-rg'
-  NetworkingResourceGroupName: 'alz-WE-networking-rg'
+  LoggingResourceGroupName: 'alz-hub-we-logging-rg'
+  NetworkingResourceGroupName: 'alz-hub-we-networking-rg'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
   DeployAlzDefaultPolicies: 'true'
-  LogAnalyticsWorkspaceName: 'alz-WE-logging-ws'
-  AutomationAccountName: 'alz-WE-automation-aa'
+  LogAnalyticsWorkspaceName: 'alz-hub-we-logging-ws'
+  AutomationAccountName: 'alz-hub-we-automation-aa'
 
 jobs:
   validate_bicep:
