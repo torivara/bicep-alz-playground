@@ -425,7 +425,7 @@ resource resAzureFirewallPolicy 'Microsoft.Network/firewallPolicies@2021-05-01' 
 }
 
 resource resFirewallPolicyDefaultNetworkRuleCollectionGroupName 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2020-07-01' = if (parAzureFirewallUsePolicies) {
-  name: '${varFirewallPolicyName}-default-network-rcg'
+  name: '${varFirewallPolicyName}/DefaultNetworkRuleCollectionGroup'
   properties: {
     priority: 200
     ruleCollections: [
@@ -461,7 +461,7 @@ resource resFirewallPolicyDefaultNetworkRuleCollectionGroupName 'Microsoft.Netwo
 }
 
 resource resFirewallPolicyDefaultDnatRuleCollectionGroupName 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2020-07-01' = if (parCreateDnatRuleCollection && parAzureFirewallUsePolicies) {
-  name: '${varFirewallPolicyName}-default-dnat-rcg'
+  name: '${varFirewallPolicyName}/DefaultDnatRuleCollectionGroup'
   properties: {
     priority: 100
     ruleCollections: [
