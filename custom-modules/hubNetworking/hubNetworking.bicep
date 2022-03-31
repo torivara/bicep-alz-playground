@@ -385,6 +385,36 @@ resource resAzureFirewall 'Microsoft.Network/azureFirewalls@2021-02-01' = if (pa
   zones: (length(parFirewallAvailabilityZones) == 0) ? null : parFirewallAvailabilityZones
   tags: parTags
   properties: {
+    networkRuleCollections: parAzureFirewallUsePolicies != true ? [
+      {
+        name: 'VmInternetAccess'
+        properties: {
+          priority: 101
+          action: {
+            type: 'Allow'
+          }
+          rules: [
+            {
+              name: 'AllowVMAppAccess'
+              description: 'Allows VM access to the web'
+              protocols: [
+                'TCP'
+              ]
+              sourceAddresses: [
+                parHubNetworkAddressPrefix
+              ]
+              destinationAddresses: [
+                '*'
+              ]
+              destinationPorts: [
+                '80'
+                '443'
+              ]
+            }
+          ]
+        }
+      }
+    ] : null
     ipConfigurations: [
       {
         name: 'ipconfig1'
@@ -399,14 +429,14 @@ resource resAzureFirewall 'Microsoft.Network/azureFirewalls@2021-02-01' = if (pa
       }
     ]
     firewallPolicy: {
-      id: parAzureFirewallUsePolicies == true ? resAzureFirewallPolicy.id : null
+      id: parAzureFirewallUsePolicies != true ? null : resAzureFirewallPolicy.id
     }
-    threatIntelMode: parAzureFirewallUsePolicies == true ? null : 'Alert'
-    sku: parAzureFirewallUsePolicies == false ? {
+    threatIntelMode: parAzureFirewallUsePolicies != true ? 'Alert' : null
+    sku: parAzureFirewallUsePolicies != true ? {
       name: 'AZFW_VNet'
       tier: parAzureFirewallTier
     } : null
-    additionalProperties: parAzureFirewallUsePolicies == false ? {
+    additionalProperties: parAzureFirewallUsePolicies != true ? {
       'Network.DNS.EnableProxy': '${parNetworkDNSEnableProxy}'
     } : null
   }
