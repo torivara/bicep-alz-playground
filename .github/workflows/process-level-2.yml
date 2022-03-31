@@ -17,25 +17,6 @@ env:
   ConfigYamlFile: 'config/shared.yml'
 
 jobs:
-  validate_bicep:
-    name: 'Validate Bicep files'
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: 'true'
-      
-      - name: BicepDemo - Validate Bicep Files
-        shell: pwsh
-        run: |
-          bicep build alz-source/infra-as-code/bicep/modules/logging/logging.bicep
-          bicep build alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
-          bicep build alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep
-          bicep build alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep
   setup_variables:
     name: 'Configure environment variables'
     runs-on: ubuntu-latest
@@ -59,6 +40,26 @@ jobs:
               echo "$($_.Key)=$($.Value)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
             }
           }
+  validate_bicep:
+    name: 'Validate Bicep files'
+    needs: setup_variables
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+      
+      - name: BicepDemo - Validate Bicep Files
+        shell: pwsh
+        run: |
+          bicep build alz-source/infra-as-code/bicep/modules/logging/logging.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/policy/assignments/policyAssignmentManagementGroup.bicep
+          bicep build alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep
   check_mg:
     name: 'Check if management group exist'
     needs: validate_bicep
