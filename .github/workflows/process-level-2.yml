@@ -36,7 +36,7 @@ jobs:
           }
           $config.GetEnumerator() | Foreach-Object {
             Write-Output "Setting environment variable $($_.Key)"
-            echo "$($_.Key)=$($.Value)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+            echo "$($_.Key)=$($_.Value)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
           }
   validate_bicep:
     name: 'Validate Bicep files'
