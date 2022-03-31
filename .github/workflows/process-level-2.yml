@@ -182,7 +182,7 @@ jobs:
         run: |
             az group create --name ${{ env.NetworkingResourceGroupName }} --location ${{ env.Location }}
             az deployment group what-if --resource-group ${{ env.NetworkingResourceGroupName }} `
-              --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
+              --template-file custom-modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json ` | Tee-Object -Variable networkOutput
             if ($networkOutput.length -gt 65536) {
               $networkOutput = $networkOutput.Substring(0,65000)
@@ -223,7 +223,7 @@ jobs:
         shell: pwsh
         run: |
             az deployment group create --resource-group ${{ env.NetworkingResourceGroupName }} `
-              --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
+              --template-file custom-modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json | Tee-Object -Variable output
             
             if ('${{ env.DeallocateFirewall }}' -eq 'true') {
