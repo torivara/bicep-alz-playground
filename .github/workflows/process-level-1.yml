@@ -37,6 +37,7 @@ jobs:
           bicep build alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep
           bicep build alz-source/infra-as-code/bicep/modules/customRoleDefinitions/customRoleDefinitions.bicep
           bicep build alz-source/infra-as-code/bicep/modules/policy/definitions/custom-policy-definitions.bicep
+          bicep build custom-modules/taoyang-managementgroups/main.bicep
   
   validate_mg:
     name: 'Management Group What-If'
@@ -62,7 +63,7 @@ jobs:
         id: create_mgs_whatif
         shell: pwsh
         run: |
-          az deployment tenant what-if --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
+          az deployment tenant what-if --template-file custom-modules/taoyang-managementgroups/main.bicep `
             --parameters @platform/level-1/managementGroups/managementGroups.parameters.json `
             --location ${{ env.Location }} | Tee-Object -Variable mgOutput
           if ($mgOutput.length -gt 65536) {
@@ -228,7 +229,7 @@ jobs:
         id: create_mgs_whatif
         shell: pwsh
         run: |
-          az deployment tenant create --template-file alz-source/infra-as-code/bicep/modules/managementGroups/managementGroups.bicep `
+          az deployment tenant create --template-file custom-modules/taoyang-managementgroups/main.bicep `
             --parameters @platform/level-1/managementGroups/managementGroups.parameters.json `
             --location ${{ env.Location }}
 

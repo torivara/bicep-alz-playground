@@ -1,0 +1,81 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "tier1MgmtGroups": {
+      "value": [
+        {
+          "id": "alz",
+          "displayName": "alz MGMT Root"
+        }
+      ]
+    },
+    "tier2MgmtGroups": {
+      "value": [
+        {
+          "id": "alz-Platform",
+          "displayName": "Platform Management",
+          "parentId": "alz"
+        },
+        {
+          "id": "alz-LandingZones",
+          "displayName": "Landing Zones",
+          "parentId": "alz"
+        },
+        {
+          "id": "alz-Sandbox",
+          "displayName": "Sandbox",
+          "parentId": "alz"
+        },
+        {
+          "id": "alz-Quarantine",
+          "displayName": "Quarantine",
+          "parentId": "alz"
+        },
+        {
+          "id": "alz-Decommissioned",
+          "displayName": "Decommissioned",
+          "parentId": "alz"
+        }
+      ]
+    },
+    "tier3MgmtGroups": {
+      "value": [
+        {
+          "id": "alz-Platform-Connectivity",
+          "displayName": "Connectivity",
+          "parentId": "alz-Platform"
+        },
+        {
+          "id": "alz-Platform-Identity",
+          "displayName": "Identity",
+          "parentId": "alz-Platform"
+        },
+        {
+          "id": "alz-Platform-Management",
+          "displayName": "Management",
+          "parentId": "alz-Platform"
+        },
+        {
+          "id": "alz-LandingZones-Corp",
+          "displayName": "Corp",
+          "parentId": "alz-LandingZones"
+        },
+        {
+          "id": "alz-LandingZones-Online",
+          "displayName": "Online",
+          "parentId": "alz-LandingZones"
+        }
+      ]
+    },
+    "authForNewMG": {
+      "value": true
+    },
+    "defaultMgId": {
+      "value": "alz-Quarantine"
+    },
+    "configMGSettings": {
+      "value": true
+    }
+  }
+}
