@@ -6,34 +6,34 @@
       "value": [
         {
           "id": "alz",
-          "displayName": "alz MGMT Root"
+          "displayName": "Azure Landing Zones"
         }
       ]
     },
     "tier2MgmtGroups": {
       "value": [
         {
-          "id": "alz-Platform",
-          "displayName": "Platform Management",
+          "id": "alz-platform",
+          "displayName": "Platform",
           "parentId": "alz"
         },
         {
-          "id": "alz-LandingZones",
+          "id": "alz-landingzones",
           "displayName": "Landing Zones",
           "parentId": "alz"
         },
         {
-          "id": "alz-Sandbox",
+          "id": "alz-sandbox",
           "displayName": "Sandbox",
           "parentId": "alz"
         },
         {
-          "id": "alz-Quarantine",
+          "id": "alz-quarantine",
           "displayName": "Quarantine",
           "parentId": "alz"
         },
         {
-          "id": "alz-Decommissioned",
+          "id": "alz-decommissioned",
           "displayName": "Decommissioned",
           "parentId": "alz"
         }
@@ -42,29 +42,29 @@
     "tier3MgmtGroups": {
       "value": [
         {
-          "id": "alz-Platform-Connectivity",
+          "id": "alz-platform-connectivity",
           "displayName": "Connectivity",
-          "parentId": "alz-Platform"
+          "parentId": "alz-platform"
         },
         {
-          "id": "alz-Platform-Identity",
+          "id": "alz-platform-identity",
           "displayName": "Identity",
-          "parentId": "alz-Platform"
+          "parentId": "alz-platform"
         },
         {
-          "id": "alz-Platform-Management",
+          "id": "alz-platform-management",
           "displayName": "Management",
-          "parentId": "alz-Platform"
+          "parentId": "alz-platform"
         },
         {
-          "id": "alz-LandingZones-Corp",
+          "id": "alz-landingzones-corp",
           "displayName": "Corp",
-          "parentId": "alz-LandingZones"
+          "parentId": "alz-landingzones"
         },
         {
-          "id": "alz-LandingZones-Online",
+          "id": "alz-landingzones-online",
           "displayName": "Online",
-          "parentId": "alz-LandingZones"
+          "parentId": "alz-landingzones"
         }
       ]
     },
@@ -72,7 +72,7 @@
       "value": true
     },
     "defaultMgId": {
-      "value": "alz-Quarantine"
+      "value": "alz-quarantine"
     },
     "configMGSettings": {
       "value": true
