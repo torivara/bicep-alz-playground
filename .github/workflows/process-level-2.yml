@@ -22,6 +22,7 @@ env:
   DeployAlzDefaultPolicies: 'true'
   LogAnalyticsWorkspaceName: 'alz-hub-we-logging-ws'
   AutomationAccountName: 'alz-hub-we-automation-aa'
+  DeallocateFirewall: 'true'
 
 jobs:
   validate_bicep:
@@ -223,7 +224,14 @@ jobs:
         run: |
             az deployment group create --resource-group ${{ env.NetworkingResourceGroupName }} `
               --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
-              --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json `
+              --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json | Tee-Object -Variable output
+            
+            if (${{ env.DeallocateFirewall }} -eq 'true') {
+              $fwName = ($output | ConvertFrom-Json).Properties.Outputs.outAzureFirewallName.value
+              $azfw = Get-AzFirewall -Name $fwName -ResourceGroupName ${{ env.NetworkingResourceGroupName }}
+              $azfw.Deallocate()
+              Set-AzFirewall -AzureFirewall $azfw
+            }
 
   validate_policyassignments:
     name: "Policy Assignments What-If"
