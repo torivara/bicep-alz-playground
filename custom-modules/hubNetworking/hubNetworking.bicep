@@ -189,6 +189,18 @@ param parTags object = {}
 @description('Set Parameter to true to Opt-out of deployment telemetry')
 param parTelemetryOptOut bool = false
 
+@description('Set Parameter to true to enable custom dns forwarder')
+param parDeployCustomDnsForwarder bool = false
+
+@description('Availability zones for this firewall. Defaults to 1')
+param parFirewallAvailabilityZones array = []
+
+@description('Set parameter to true to create dnat rule collection')
+param parCreateDnatRuleCollection bool = true
+
+param parAzureFirewallUsePolicies bool = false
+
+var varFirewallPolicyName = '${parAzureFirewallName}-defaultpolicy'
 var varSubnetProperties = [for subnet in parSubnets: {
   name: subnet.name
   properties: {
@@ -370,38 +382,9 @@ module modAzureFirewallPublicIP '../../alz-source/infra-as-code/bicep/modules/pu
 resource resAzureFirewall 'Microsoft.Network/azureFirewalls@2021-02-01' = if (parAzureFirewallEnabled) {
   name: parAzureFirewallName
   location: parLocation
+  zones: (length(parFirewallAvailabilityZones) == 0) ? null : parFirewallAvailabilityZones
   tags: parTags
   properties: {
-    networkRuleCollections: [
-      {
-        name: 'VmInternetAccess'
-        properties: {
-          priority: 101
-          action: {
-            type: 'Allow'
-          }
-          rules: [
-            {
-              name: 'AllowVMAppAccess'
-              description: 'Allows VM access to the web'
-              protocols: [
-                'TCP'
-              ]
-              sourceAddresses: [
-                parHubNetworkAddressPrefix
-              ]
-              destinationAddresses: [
-                '*'
-              ]
-              destinationPorts: [
-                '80'
-                '443'
-              ]
-            }
-          ]
-        }
-      }
-    ]
     ipConfigurations: [
       {
         name: 'ipconfig1'
@@ -415,14 +398,102 @@ resource resAzureFirewall 'Microsoft.Network/azureFirewalls@2021-02-01' = if (pa
         }
       }
     ]
-    threatIntelMode: 'Alert'
-    sku: {
+    firewallPolicy: {
+      id: parAzureFirewallUsePolicies == true ? resAzureFirewallPolicy.id : null
+    }
+    threatIntelMode: parAzureFirewallUsePolicies == true ? null : 'Alert'
+    sku: parAzureFirewallUsePolicies == false ? {
       name: 'AZFW_VNet'
       tier: parAzureFirewallTier
-    }
-    additionalProperties: {
+    } : null
+    additionalProperties: parAzureFirewallUsePolicies == false ? {
       'Network.DNS.EnableProxy': '${parNetworkDNSEnableProxy}'
+    } : null
+  }
+}
+
+resource resAzureFirewallPolicy 'Microsoft.Network/firewallPolicies@2021-05-01' = if (parAzureFirewallUsePolicies) {
+  name: varFirewallPolicyName
+  location: parLocation
+  properties: {
+    dnsSettings: {
+      enableProxy: true
+      servers: parDeployCustomDnsForwarder ? parDNSServerIPArray : null
     }
+    threatIntelMode: 'Alert'
+  }
+}
+
+resource resFirewallPolicyDefaultNetworkRuleCollectionGroupName 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2020-07-01' = if (parAzureFirewallUsePolicies) {
+  name: '${varFirewallPolicyName}-default-network-rcg'
+  properties: {
+    priority: 200
+    ruleCollections: [
+      {
+        name: 'VnetToInternet'
+        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+        priority: 200
+        action: {
+          type: 'Allow'
+        }
+        rules: [
+          {
+            name: 'Allow-${resHubVirtualNetwork.name}-${resHubVirtualNetwork.properties.subnets[0].name}-Internet-Traffic'
+            ruleType: 'NetworkRule'
+            ipProtocols: [
+              'TCP'
+            ]
+            sourceAddresses: [
+              resHubVirtualNetwork.properties.subnets[0].properties.addressPrefix
+            ]
+            destinationAddresses: [
+              '*'
+            ]
+            destinationPorts: [
+              '80'
+              '443'
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+
+resource resFirewallPolicyDefaultDnatRuleCollectionGroupName 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2020-07-01' = if (parCreateDnatRuleCollection && parAzureFirewallUsePolicies) {
+  name: '${varFirewallPolicyName}-default-dnat-rcg'
+  properties: {
+    priority: 100
+    ruleCollections: [
+      {
+        name: 'VirtualMachineNatRules'
+        ruleCollectionType: 'FirewallPolicyNatRuleCollection'
+        priority: 300
+        action: {
+          type: 'DNAT'
+        }
+        rules: [
+          {
+            name: 'TestVM-Rdp-Nat-Rule'
+            ruleType: 'NatRule'
+            sourceAddresses: [
+              '*'
+            ]
+            destinationAddresses: [
+              '123.4.5.6'
+            ]
+            destinationPorts: [
+              '4001'
+            ]
+            ipProtocols: [
+              'TCP'
+            ]
+            translatedAddress: '10.0.0.1'
+            translatedPort: '22'
+          }
+        ]
+      }
+    ]
   }
 }
 
