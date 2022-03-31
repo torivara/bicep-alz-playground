@@ -1,0 +1,8 @@
+Location: 'westeurope'
+ManagementGroupPrefix: 'alz'
+TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
+DeployAlzDefaultPolicies: 'true'
+LoggingResourceGroupName: 'alz-hub-we-logging-rg'
+NetworkingResourceGroupName: 'alz-hub-we-networking-rg'
+LogAnalyticsWorkspaceName: 'alz-hub-we-logging-ws'
+AutomationAccountName: 'alz-hub-we-automation-aa'
