@@ -34,14 +34,9 @@ jobs:
             Write-Output "Config file found. Enumerating and storing in variable"
             $config = Get-Content '${{ env.ConfigYamlFile }}' | ConvertFrom-Yaml
           }
-          try {
-            $config.GetEnumerator() | Foreach-Object {
-              Write-Output "Setting environment variable $($_.Key)"
-              echo "$($_.Key)=$($.Value)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-            }
-          }
-          Catch {
-            Write-Output "Error setting variables."
+          $config.GetEnumerator() | Foreach-Object {
+            Write-Output "Setting environment variable $($_.Key)"
+            echo "$($_.Key)=$($.Value)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
           }
   validate_bicep:
     name: 'Validate Bicep files'
