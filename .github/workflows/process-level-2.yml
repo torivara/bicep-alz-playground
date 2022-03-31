@@ -40,6 +40,9 @@ jobs:
               echo "$($_.Key)=$($.Value)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
             }
           }
+          Catch {
+            Write-Output "Error setting variables."
+          }
   validate_bicep:
     name: 'Validate Bicep files'
     needs: setup_variables
