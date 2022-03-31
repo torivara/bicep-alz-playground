@@ -40,7 +40,6 @@ jobs:
           }
   validate_bicep:
     name: 'Validate Bicep files'
-    needs: setup_variables
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
@@ -60,7 +59,7 @@ jobs:
           bicep build alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep
   check_mg:
     name: 'Check if management group exist'
-    needs: validate_bicep
+    needs: ['validate_bicep', 'setup_variables']
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
