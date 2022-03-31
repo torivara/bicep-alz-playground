@@ -14,30 +14,16 @@ on:
   workflow_dispatch: {}
 
 env:
-  ConfigYamlFile: 'config/shared.yml'
+  Location: 'westeurope'
+  ManagementGroupPrefix: 'alz'
+  LoggingResourceGroupName: 'alz-hub-we-logging-rg'
+  NetworkingResourceGroupName: 'alz-hub-we-networking-rg'
+  TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
+  DeployAlzDefaultPolicies: 'true'
+  LogAnalyticsWorkspaceName: 'alz-hub-we-logging-ws'
+  AutomationAccountName: 'alz-hub-we-automation-aa'
 
 jobs:
-  setup_variables:
-    name: 'Configure environment variables'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set env variables
-        shell: pwsh
-        run: |
-          Install-Module powershell-Yaml -Force
-          if (Get-Item -Path ${{ env.ConfigYamlFile }}) {
-            Write-Output "Config file found. Enumerating and storing in variable"
-            $config = Get-Content '${{ env.ConfigYamlFile }}' | ConvertFrom-Yaml
-          }
-          $config.GetEnumerator() | Foreach-Object {
-            Write-Output "Setting environment variable $($_.Key)"
-            echo "$($_.Key)=$($_.Value)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-          }
   validate_bicep:
     name: 'Validate Bicep files'
     if: ${{ github.event_name == 'pull_request' }}
@@ -59,7 +45,7 @@ jobs:
           bicep build alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep
   check_mg:
     name: 'Check if management group exist'
-    needs: ['validate_bicep', 'setup_variables']
+    needs: validate_bicep
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
@@ -439,3 +425,25 @@ jobs:
             --location ${{ env.Location }} `
             --management-group-id "${{ env.ManagementGroupPrefix }}-landingzones"
           }
+
+  # setup_variables:
+  #   name: 'Configure environment variables'
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout Repo
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Set env variables
+  #       shell: pwsh
+  #       run: |
+  #         Install-Module powershell-Yaml -Force
+  #         if (Get-Item -Path ${{ env.ConfigYamlFile }}) {
+  #           Write-Output "Config file found. Enumerating and storing in variable"
+  #           $config = Get-Content '${{ env.ConfigYamlFile }}' | ConvertFrom-Yaml
+  #         }
+  #         $config.GetEnumerator() | Foreach-Object {
+  #           Write-Output "Setting environment variable $($_.Key)"
+  #           echo "$($_.Key)=$($_.Value)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+  #         }
