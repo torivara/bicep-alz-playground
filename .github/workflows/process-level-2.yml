@@ -226,7 +226,7 @@ jobs:
               --template-file alz-source/infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json | Tee-Object -Variable output
             
-            if (${{ env.DeallocateFirewall }} -eq 'true') {
+            if ('${{ env.DeallocateFirewall }}' -eq 'true') {
               $fwName = ($output | ConvertFrom-Json).Properties.Outputs.outAzureFirewallName.value
               $azfw = Get-AzFirewall -Name $fwName -ResourceGroupName ${{ env.NetworkingResourceGroupName }}
               $azfw.Deallocate()
