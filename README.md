@@ -120,3 +120,49 @@ az ad group create --display-name 'secops' `
   --mail-nickname 'secops' `
   --description 'Security Operations Personnel'
 ```
+
+## Features
+
+- Deploys Management Group hierarchy as defined in [parameters](platform/level-1/managementGroups/managementGroups.parameters.json).
+- Moves Management Groups if they are in the wrong place
+- Deploys Custom Role Definitions in top level Management Group
+  - caf-subscription-owner-role
+  - caf-application-owner-role
+  - caf-network-management-role
+  - caf-security-operations-role
+- Deploys Custom Azure Policy definitions in top level Management Group
+- Deploys default Azure Landing Zones policy definitions, and assigns if this is chosen
+- Deploys Hub networking as defined in parameters
+  - Azure Firewall
+  - Azure VPN
+  - Azure Bastion
+  - Azure Private Endpoint DNS
+  - ++
+- Deploys spoke networking
+  - Spoke peering is deployed if landing zone is defined as corp
+- Deploys logging resources
+  - Azure Automation
+  - Log Analytics workspace
+  - ++
+- Deploys custom Azure Policy assignments
+- Deploys custom Role Assignments
+- Moves subscriptions to declared Management Groups
+
+## Notfeatures
+
+Bicep is a create and update tool, and will not delete resources that are removed from code. This must be performed with other tools, such as AZ Cli or PowerShell.
+
+- Delete Management Groups not in parameters
+- Delete any resource not in parameters
+
+## Planned features
+
+- Deploy basic resources from level-4 to spokes
+  - Azure Virtual Desktop
+  - AKS
+  - VMs
+  - Web site hosting
+  - Application Gateway?
+  - ...
+
+More features will be added when I find the time.
