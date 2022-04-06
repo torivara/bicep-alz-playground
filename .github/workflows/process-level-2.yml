@@ -215,7 +215,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
-          enable-AzPSSession: false
+          enable-AzPSSession: true
           allow-no-subscriptions: true
 
       - name: Az CLI Deploy Networking
@@ -227,6 +227,7 @@ jobs:
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json | Tee-Object -Variable output
             
             if ('${{ env.DeallocateFirewall }}' -eq 'true') {
+              Import-Module -Name Az.Network -Force
               $fwName = ($output | ConvertFrom-Json).Properties.Outputs.outAzureFirewallName.value
               $azfw = Get-AzFirewall -Name $fwName -ResourceGroupName ${{ env.NetworkingResourceGroupName }}
               $azfw.Deallocate()
