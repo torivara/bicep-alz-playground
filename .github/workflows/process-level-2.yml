@@ -272,16 +272,24 @@ jobs:
             $output | Out-File -FilePath "/tmp/policy/$($file.baseName).md" -Encoding UTF8 -Force
           }
           if ( '${{ env.DeployAlzDefaultPolicies }}' -eq 'true' ) {
-            az deployment mg what-if `
-            --template-file  alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep `
-            --parameters "@platform/level-2/alzDefaultPolicies/alzDefaultPolicyAssignments.parameters.json" `
-            --location ${{ env.Location }} `
-            --management-group-id ${{ env.ManagementGroupPrefix }} `
-            --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
-            --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
-            --parameters parLogAnalyticsWorkspaceResourceID=$logAnalyticsWorkspaceId `
-            --parameters parAutomationAccountName=${{ env.AutomationAccountName }} `
-            --exclude-change-types Ignore NoChange | Tee-Object -Variable alzDefaultPolicies
+            try {
+              az deployment mg what-if `
+                --template-file  alz-source/infra-as-code/bicep/modules/policy/assignments/alzDefaults/alzDefaultPolicyAssignments.bicep `
+                --parameters "@platform/level-2/alzDefaultPolicies/alzDefaultPolicyAssignments.parameters.json" `
+                --location ${{ env.Location }} `
+                --management-group-id ${{ env.ManagementGroupPrefix }} `
+                --parameters parTopLevelManagementGroupPrefix=${{ env.ManagementGroupPrefix }} `
+                --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
+                --parameters parLogAnalyticsWorkspaceResourceID=$logAnalyticsWorkspaceId `
+                --parameters parAutomationAccountName=${{ env.AutomationAccountName }} `
+                --exclude-change-types Ignore NoChange | Tee-Object -Variable alzDefaultPolicies
+            }
+            Catch {
+              Write-Output "Error while performing what-if:"
+              $alzDefaultPolicies | ConvertFrom-Json | Format-List
+
+              
+            }
             $output = $alzDefaultPolicies
             if ($output.length -gt 65536) {
               $output = $var.Value.Substring(0,65000)
