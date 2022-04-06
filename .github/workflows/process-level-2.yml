@@ -222,9 +222,9 @@ jobs:
         id: create_hubnetworking
         shell: pwsh
         run: |
-            az deployment group create --resource-group ${{ env.NetworkingResourceGroupName }} `
+            $output = (az deployment group create --resource-group ${{ env.NetworkingResourceGroupName }} `
               --template-file custom-modules/hubNetworking/hubNetworking.bicep `
-              --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json | Tee-Object -Variable output
+              --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json --output json) | ConvertFrom-Json
             
             if ('${{ env.DeallocateFirewall }}' -eq 'true') {
               Import-Module -Name Az.Network -Force
