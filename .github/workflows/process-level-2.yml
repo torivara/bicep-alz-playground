@@ -282,13 +282,11 @@ jobs:
                 --parameters parLogAnalyticsWorkSpaceAndAutomationAccountLocation=${{ env.Location }} `
                 --parameters parLogAnalyticsWorkspaceResourceID=$logAnalyticsWorkspaceId `
                 --parameters parAutomationAccountName=${{ env.AutomationAccountName }} `
-                --exclude-change-types Ignore NoChange | Tee-Object -Variable alzDefaultPolicies
+                --exclude-change-types Ignore --output json | Tee-Object -Variable alzDefaultPolicies
             }
             Catch {
               Write-Output "Error while performing what-if:"
               $alzDefaultPolicies | ConvertFrom-Json | Format-List
-
-              
             }
             $output = $alzDefaultPolicies
             if ($output.length -gt 65536) {
