@@ -229,7 +229,7 @@ jobs:
             if ('${{ env.DeallocateFirewall }}' -eq 'true') {
               Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
               Import-Module -Name Az.Network -Force
-              $fwName = ($output | ConvertFrom-Json).Properties.Outputs.outAzureFirewallName.value
+              $fwName = $output.Properties.Outputs.outAzureFirewallName.value
               $azfw = Get-AzFirewall -Name $fwName -ResourceGroupName ${{ env.NetworkingResourceGroupName }}
               $azfw.Deallocate()
               Set-AzFirewall -AzureFirewall $azfw
