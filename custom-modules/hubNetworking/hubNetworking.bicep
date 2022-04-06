@@ -415,7 +415,7 @@ resource resFirewallPolicyDefaultNetworkRuleCollectionGroupName 'Microsoft.Netwo
     priority: 200
     ruleCollections: [
       {
-        name: 'VnetToInternet'
+        name: 'VnetToInternet-network'
         ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
         priority: 200
         action: {
@@ -437,6 +437,67 @@ resource resFirewallPolicyDefaultNetworkRuleCollectionGroupName 'Microsoft.Netwo
             destinationPorts: [
               '80'
               '443'
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+
+resource resFirewallPolicyDefaultApplicationRuleCollectionGroupName 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2020-07-01' = if (parAzureFirewallUsePolicies) {
+  name: '${varFirewallPolicyName}/DefaultApplicationRuleCollectionGroup'
+  properties: {
+    priority: 200
+    ruleCollections: [
+      {
+        name: 'VnetToInternet-application'
+        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+        priority: 200
+        action: {
+          type: 'Allow'
+        }
+        rules: [
+          {
+            name: 'windowsupdate-rule-01'
+            ruleType: 'ApplicationRule'
+            protocols: [
+              {
+                protocolType: 'Http'
+                port: 80
+              }
+              {
+                protocolType: 'Https'
+                port: 443
+              }
+            ]
+            fqdnTags: [
+              'WindowsUpdate'
+            ]
+            terminateTLS: false
+            sourceAddresses: [
+              parHubNetworkAddressPrefix
+            ]
+          }
+          {
+            name: 'allow-all-web'
+            ruleType: 'ApplicationRule'
+            protocols: [
+              {
+                protocolType: 'Http'
+                port: 80
+              }
+              {
+                protocolType: 'Https'
+                port: 443
+              }
+            ]
+            destinationAddresses: [
+              '*'
+            ]
+            terminateTLS: false
+            sourceAddresses: [
+              parHubNetworkAddressPrefix
             ]
           }
         ]
