@@ -389,14 +389,8 @@ module modAzureFirewall '../arm/Microsoft.Network/azureFirewalls/deploy.bicep' =
     ipConfigurations: [
       {
         name: 'ipconfig1'
-        properties: {
-          subnet: {
-            id: resAzureFirewallSubnetRef.id
-          }
-          publicIPAddress: {
-            id: parAzureFirewallEnabled ? modAzureFirewallPublicIP.outputs.outPublicIPID : ''
-          }
-        }
+        publicIPAddressResourceId: parAzureFirewallEnabled ? modAzureFirewallPublicIP.outputs.outPublicIPID : ''
+        subnetResourceId: resAzureFirewallSubnetRef.id
       }
     ]
     firewallPolicyId: parAzureFirewallUsePolicies != true ? '' : modAzureFirewallPolicy.outputs.resourceId
