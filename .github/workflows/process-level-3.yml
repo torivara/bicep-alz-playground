@@ -16,8 +16,8 @@ on:
 env:
   Location: 'westeurope'
   ManagementGroupPrefix: 'alz'
-  LoggingResourceGroupName: 'alz-logging-rg'
-  NetworkingResourceGroupName: 'alz-networking-rg'
+  LoggingResourceGroupName: 'alz-hub-we-logging-rg'
+  NetworkingResourceGroupName: 'alz-hub-we-networking-rg'
   HubNetworkName: 'alz-hub-WE-vnet'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
   PlatformSubscriptionId: ${{ secrets.AZURE_HUB_SUBSCRIPTION_ID }}
