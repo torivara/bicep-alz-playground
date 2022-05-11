@@ -34,4 +34,4 @@ jobs:
           }
       - name: Write env variables
         shell: pwsh
-        run: Write-Output ${{ github.env }}
+        run: Write-Output ${{ env }}
