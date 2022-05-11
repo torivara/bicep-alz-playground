@@ -2,6 +2,8 @@
 
 This will be my playground for playing around with [Bicep ALZ](https://github.com/Azure/ALZ-bicep).
 
+[Deployment guide](deployment.md)
+
 ## Workflows
 
 Triggers on Pull Request:
@@ -59,15 +61,6 @@ Push triggered actions will run deployment of resources declared in bicep files.
     - virtualNetworkPeer - Needed a change for it to be deployable in this scenario
     - spokes - Custom module for creating spokes based on the main orchestration bicep from ALZ-Bicep
   - scripts - Miscellaneous scripts or script notes that may or may not be needed for deployment
-
-### Add submodule
-
-Added the Bicep ALZ as a submodule in this repo to have the possibility of fetching new repo versions. Submodule added at a specific commit, and must be manually pulled for new versions.
-
-```bash
-cd `your repo root`
-git add submodule 'https://github.com/Azure/ALZ-Bicep.git' alz-source
-```
 
 ## Features
 
