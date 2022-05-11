@@ -24,9 +24,9 @@ jobs:
         shell: pwsh
         run: |
           Install-Module powershell-Yaml -Force
-          if (Get-Item -Path ${{ env.ConfigYamlFile }}) {
+          if (Get-Item -Path ${{ env.configYamlFile }}) {
             Write-Output "Config file found. Enumerating and storing in variable"
-            $config = Get-Content '${{ env.ConfigYamlFile }}' | ConvertFrom-Yaml
+            $config = Get-Content '${{ env.configYamlFile }}' | ConvertFrom-Yaml
           }
           $config.GetEnumerator() | Foreach-Object {
             Write-Output "Setting environment variable $($_.Key)"
