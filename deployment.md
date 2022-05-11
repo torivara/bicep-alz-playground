@@ -45,11 +45,11 @@ Value:
 
 ```json
 {
-  "clientId": "`app registration id`",
-  "displayName": "`app registration display name`",
-  "name": "`app registration client name`",
-  "clientSecret": "`your client secret`",
-  "tenantId": "`your tenant id`"
+  "clientId": "app registration id",
+  "displayName": "app registration display name",
+  "name": "app registration client name",
+  "clientSecret": "your client secret",
+  "tenantId": "your tenant id"
 }
 ```
 
