@@ -234,7 +234,7 @@ jobs:
               --template-file custom-modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json --output json) | ConvertFrom-Json
             
-            if ('${{ env.DeallocateFirewall }}' -eq 'true') {
+            if ('${{ env.DeallocateFirewall }}' -eq 'true' -and $output) {
               Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
               Import-Module -Name Az.Network -Force
               $fwName = $output.Properties.Outputs.outAzureFirewallName.value
