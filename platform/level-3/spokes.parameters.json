@@ -14,7 +14,7 @@
           "subscriptionId": "3fdea49a-5396-4c74-b818-79b29be5d9d9",
           "addressPrefix": "10.1.0.0/16",
           "vnetName": "onlinespoke-vnet",
-          "parDNSServerIPArray": {
+          "parDnsServerIPs": {
             "value": []
           }
         }
@@ -29,7 +29,7 @@
           "subscriptionId": "79e35193-361d-434b-8614-4fe1dac83fb9",
           "addressPrefix": "10.2.0.0/16",
           "vnetName": "corpspoke-vnet",
-          "parDNSServerIPArray": {
+          "parDnsServerIPs": {
             "value": []
           }
         }
