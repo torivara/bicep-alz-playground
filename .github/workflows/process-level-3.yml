@@ -20,7 +20,7 @@ env:
   NetworkingResourceGroupName: 'alz-hub-we-networking-rg'
   HubNetworkName: 'alz-hub-WE-vnet'
   TopLevelManagementGroupDisplayName: 'Azure Landing Zones'
-  PlatformSubscriptionId: ${{ secrets.AZURE_HUB_SUBSCRIPTION_ID }}
+  PlatformSubscriptionId: ${{ secrets.AZURE_PLATFORM_SUBSCRIPTION_ID }}
 
 jobs:
   validate_bicep:
