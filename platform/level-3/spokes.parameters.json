@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "parResourceGroupNameForSpokeNetworking": {
-      "value": "alz-WE-spoke-networking-rg"
+      "value": "alz-spoke-networking-rg"
     },
     "parAzureFirewallEnabled": {
       "value": false
