@@ -32,10 +32,10 @@ param parAzureFirewallEnabled bool = true
 param parTags object = {}
 
 @description('Array of DNS Server IP addresses for VNet. Default: Empty Array')
-param parDNSServerIPArray array = []
+param parDnsServerIPs array = []
 
 @description('Name of Route table to create for the default route of Hub. Default: rtb-spoke-to-hub')
-param parSpoketoHubRouteTableName string = 'rtb-spoke-to-hub'
+param parSpokeToHubRouteTableName string = 'rtb-spoke-to-hub'
 
 @description('Set Parameter to true to Opt-out of deployment telemetry')
 param parTelemetryOptOut bool = true
@@ -103,9 +103,9 @@ module modSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/spokeNet
     parSpokeNetworkName: corpSub.vnetName
     parSpokeNetworkAddressPrefix: corpSub.addressPrefix
     parDdosProtectionPlanId: parDDoSPlanResourceID
-    parDNSServerIPArray: parDNSServerIPArray
+    parDnsServerIPs: parDnsServerIPs
     parNextHopIPAddress: parAzureFirewallEnabled ? parAzureFirewallPrivateIP : ''
-    parSpoketoHubRouteTableName: parSpoketoHubRouteTableName
+    parSpokeToHubRouteTableName: parSpokeToHubRouteTableName
     parTags: parTags
     parTelemetryOptOut: parTelemetryOptOut
   }
@@ -250,7 +250,7 @@ module modOnlineSpokeNetworking '../../alz-source/infra-as-code/bicep/modules/sp
     parSpokeNetworkName: onlineSub.vnetName
     parSpokeNetworkAddressPrefix: onlineSub.addressPrefix
     parDdosProtectionPlanId: parDDoSPlanResourceID
-    parDNSServerIPArray: parDNSServerIPArray
+    parDnsServerIPs: parDnsServerIPs
     parNextHopIPAddress: ''
     parTags: parTags
     parTelemetryOptOut: parTelemetryOptOut
