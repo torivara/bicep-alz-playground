@@ -74,7 +74,7 @@ You need to update environment variables in the workflows before running these t
 
 ### Level 1
 
-[Workflow file](\.github\workflows\process-level-1.yml)
+[Workflow file](.github/workflows/process-level-1.yml)
 
 ```yaml
 env:
@@ -85,7 +85,7 @@ env:
 
 ### Level 2
 
-[Workflow file](\.github\workflows\process-level-2.yml)
+[Workflow file](.github/workflows/process-level-2.yml)
 
 ```yaml
 env:
@@ -102,7 +102,7 @@ env:
 
 ### Level 3
 
-[Workflow file](\.github\workflows\process-level-3.yml)
+[Workflow file](.github/workflows/process-level-3.yml)
 
 ```yaml
 env:
