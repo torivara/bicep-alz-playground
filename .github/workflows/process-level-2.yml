@@ -23,6 +23,7 @@ env:
   LogAnalyticsWorkspaceName: 'alz-hub-we-logging-ws'
   AutomationAccountName: 'alz-hub-we-automation-aa'
   DeallocateFirewall: 'true'
+  PlatformSubscriptionId: ${{ secrets.AZURE_PLATFORM_SUBSCRIPTION_ID }}
 
 jobs:
   validate_bicep:
@@ -91,13 +92,15 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
+          allow-no-subscriptions: true
 
       - name: Az CLI What-If Logging
         id: create_logging_whatif
         shell: pwsh
         run: |
+            az account set --subscription ${{ env.PlatformSubscriptionId }}
             az group create --name ${{ env.LoggingResourceGroupName }} --location ${{ env.Location }}
             az deployment group what-if --resource-group ${{ env.LoggingResourceGroupName }} `
               --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
@@ -144,13 +147,15 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
+          allow-no-subscriptions: true
 
       - name: Az CLI Create Logging
         id: create_logging
         shell: pwsh
         run: |
+            az account set --subscription ${{ env.PlatformSubscriptionId }}
             az deployment group create --resource-group ${{ env.LoggingResourceGroupName }} `
               --template-file  alz-source/infra-as-code/bicep/modules/logging/logging.bicep `
               --parameters @platform/level-2/logging/logging.parameters.json `
@@ -173,13 +178,15 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
+          allow-no-subscriptions: true
 
       - name: Az CLI What-If Hub Networking
         id: create_hubnetworking_whatif
         shell: pwsh
         run: |
+            az account set --subscription ${{ env.PlatformSubscriptionId }}
             az group create --name ${{ env.NetworkingResourceGroupName }} --location ${{ env.Location }}
             az deployment group what-if --resource-group ${{ env.NetworkingResourceGroupName }} `
               --template-file custom-modules/hubNetworking/hubNetworking.bicep `
@@ -214,7 +221,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_PLATFORM }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: true
           allow-no-subscriptions: true
 
@@ -222,6 +229,7 @@ jobs:
         id: create_hubnetworking
         shell: pwsh
         run: |
+            az account set --subscription ${{ env.PlatformSubscriptionId }}
             $output = (az deployment group create --resource-group ${{ env.NetworkingResourceGroupName }} `
               --template-file custom-modules/hubNetworking/hubNetworking.bicep `
               --parameters @platform/level-2/hubNetworking/hubNetworking.parameters.json --output json) | ConvertFrom-Json
