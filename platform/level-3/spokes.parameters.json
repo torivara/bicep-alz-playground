@@ -11,7 +11,7 @@
     "parOnlineSubscriptionIds": {
       "value": [
         {
-          "subscriptionId": "3fdea49a-5396-4c74-b818-79b29be5d9d9",
+          "subscriptionId": "your-online-subscription-id",
           "addressPrefix": "10.1.0.0/16",
           "vnetName": "onlinespoke-vnet",
           "parDnsServerIPs": {
@@ -26,7 +26,7 @@
     "parCorpSubscriptionIds": {
       "value": [
         {
-          "subscriptionId": "79e35193-361d-434b-8614-4fe1dac83fb9",
+          "subscriptionId": "your-corp-subscription-id",
           "addressPrefix": "10.2.0.0/16",
           "vnetName": "corpspoke-vnet",
           "parDnsServerIPs": {
